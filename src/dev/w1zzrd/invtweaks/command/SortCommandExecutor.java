@@ -142,12 +142,14 @@ public class SortCommandExecutor implements CommandExecutor {
                 } else {
                     final int currentAmount = current.getAmount();
 
-                    if (current.getAmount() < current.getMaxStackSize()) {
-                        final int newAmount = Math.min(currentAmount + amount, current.getMaxStackSize());
+                    if (currentAmount < current.getMaxStackSize()) {
+                        final int newAmount = Math.min(amount, current.getMaxStackSize());
                         current.setAmount(newAmount);
 
                         // Update remaining count of given material
-                        count.put(key, amount - (newAmount - currentAmount));
+                        count.put(key, amount - newAmount);
+                    } else {
+                        count.put(key, amount - currentAmount);
                     }
                 }
             } else {
