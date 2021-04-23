@@ -91,6 +91,9 @@ public class SortCommandExecutor implements CommandExecutor {
     private static class ItemStackComparator implements Comparator<ItemStack> {
         @Override
         public int compare(ItemStack o1, ItemStack o2) {
+            if (o1 == null || o2 == null)
+                return o1 == o2 ? 0 : o1 == null ? 1 : -1;
+
             final Material m1 = o1.getType();
             final Material m2 = o2.getType();
 
