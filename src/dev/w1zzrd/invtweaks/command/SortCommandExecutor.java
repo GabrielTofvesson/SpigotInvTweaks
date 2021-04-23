@@ -194,7 +194,7 @@ public class SortCommandExecutor implements CommandExecutor {
                 final int amount = count.get(tracked.get());
 
                 if (amount == 0) {
-                    stacks[i] = new ItemStack(Material.AIR);
+                    stacks[i] = null;
                 } else {
                     final int newAmount = Math.min(amount, current.getMaxStackSize());
                     current.setAmount(newAmount);
