@@ -156,7 +156,7 @@ public class SortCommandExecutor implements CommandExecutor {
 
             // Stacks of similar type are organized according to stack size
             if (o1.isSimilar(o2))
-                return Integer.compare(o1.getAmount(), o2.getAmount());
+                return -Integer.compare(o1.getAmount(), o2.getAmount());
 
             // Differing stacks are sorted according to enum ordinal (arbitrary but I'm not manually designing an order)
             return Integer.compare(m1.ordinal(), m2.ordinal());
