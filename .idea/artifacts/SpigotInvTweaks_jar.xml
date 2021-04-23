@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="SpigotInvTweaks:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/SpigotInvTweaks_jar</output-path>
+    <root id="archive" name="SpigotInvTweaks.jar">
+      <element id="module-output" name="SpigotInvTweaks" />
+    </root>
+  </artifact>
+</component>
