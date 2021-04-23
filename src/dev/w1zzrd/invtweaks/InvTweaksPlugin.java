@@ -26,8 +26,6 @@ public class InvTweaksPlugin extends JavaPlugin {
     public void onDisable() {
         logger.info("Inventory Tweaks disabled");
 
-        getCommand("sort").setExecutor(null);
-
         HandlerList.unregisterAll(this);
     }
 }
