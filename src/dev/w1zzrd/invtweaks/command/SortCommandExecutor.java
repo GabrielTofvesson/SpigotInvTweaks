@@ -4,11 +4,15 @@ import dev.w1zzrd.logging.LoggerFactory;
 import org.bukkit.Material;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Chest;
+import org.bukkit.block.DoubleChest;
+import org.bukkit.block.ShulkerBox;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.DoubleChestInventory;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.*;
@@ -31,27 +35,88 @@ public class SortCommandExecutor implements CommandExecutor {
 
         final BlockState target = player.getTargetBlock(null, 6).getState();
 
-        if (!(target instanceof Chest)) return false;
-
-        final Chest chest = (Chest) target;
-
-        final Inventory chestInventory = chest.getBlockInventory();
-        mergeStacks(chestInventory);
-        sortInventory(chestInventory);
+        // Sort appropriate inventory holder
+        if (target instanceof Chest)
+            sortChest((Chest) target);
+        else if (target instanceof ShulkerBox)
+            sortShulkerBox((ShulkerBox) target);
+        else
+            sortPlayer(player);
 
         return true;
     }
 
-    private static void sortInventory(final Inventory inventory) {
-        inventory.setContents(Arrays.stream(inventory.getContents())
-                .sorted(new ItemStackComparator())
-                .toArray(ItemStack[]::new)
-        );
+    private static void sortShulkerBox(final ShulkerBox shulkerBox) {
+        sortInventory(shulkerBox.getInventory());
     }
 
-    private static void mergeStacks(final Inventory inventory) {
+    private static void sortChest(final Chest chest) {
+        final InventoryHolder chestInventoryHolder = chest.getBlockInventory().getHolder();
+
+        assert chestInventoryHolder != null;
+
+        final Inventory chestInventory = chestInventoryHolder.getInventory();
+        final ItemStack[] toSort;
+
+        if (chestInventoryHolder instanceof DoubleChest) {
+            final ItemStack[] c1 = ((DoubleChestInventory) chestInventory).getLeftSide().getContents();
+            final ItemStack[] c2 = ((DoubleChestInventory) chestInventory).getRightSide().getContents();
+
+            toSort = new ItemStack[c1.length + c2.length];
+            System.arraycopy(c1, 0, toSort, 0, c1.length);
+            System.arraycopy(c2, 0, toSort, c1.length, c2.length);
+        } else {
+            toSort = chestInventory.getContents();
+        }
+
+        mergeStacks(toSort);
+        sortStacks(toSort);
+
+        if (chestInventoryHolder instanceof DoubleChest) {
+            final Inventory invLeft = ((DoubleChestInventory) chestInventory).getLeftSide();
+            final Inventory invRight = ((DoubleChestInventory) chestInventory).getRightSide();
+
+            final ItemStack[] stacksLeft = new ItemStack[invLeft.getSize()];
+            final ItemStack[] stacksRight = new ItemStack[invRight.getSize()];
+
+            System.arraycopy(toSort, 0, stacksLeft, 0, stacksLeft.length);
+            System.arraycopy(toSort, stacksLeft.length, stacksRight, 0, stacksRight.length);
+
+            invLeft.setContents(stacksLeft);
+            invRight.setContents(stacksRight);
+        } else {
+            chestInventory.setContents(toSort);
+        }
+    }
+
+    private static void sortPlayer(final Player player) {
+        final ItemStack[] stacks = player.getInventory().getContents();
+
+        final ItemStack[] sortable = Arrays.copyOfRange(stacks, 9, 36);
+        mergeStacks(sortable);
+        sortStacks(sortable);
+        System.arraycopy(sortable, 0, stacks, 9, sortable.length);
+
+        player.getInventory().setContents(stacks);
+    }
+
+    private static void sortInventory(final Inventory inventory) {
+        final ItemStack[] stacks = inventory.getContents();
+        mergeStacks(stacks);
+        sortStacks(stacks);
+        inventory.setContents(stacks);
+    }
+
+    private static void sortStacks(final ItemStack[] stacks) {
+        Arrays.sort(stacks, new ItemStackComparator());
+    }
+
+    private static void mergeStacks(final ItemStack[] stacks) {
         final HashMap<ItemStack, Integer> count = new HashMap<>();
-        for (final ItemStack stack : inventory) {
+        for (final ItemStack stack : stacks) {
+            if (stack == null)
+                continue;
+
             final Optional<ItemStack> tracked = count.keySet().stream().filter(stack::isSimilar).findFirst();
 
             if (tracked.isPresent())
@@ -60,8 +125,11 @@ public class SortCommandExecutor implements CommandExecutor {
                 count.put(stack, stack.getAmount());
         }
 
-        for (int i = inventory.getSize() - 1; i >= 0; --i) {
-            final ItemStack current = Objects.requireNonNull(inventory.getItem(i));
+        for (int i = stacks.length - 1; i >= 0; --i) {
+            final ItemStack current = stacks[i];
+            if (current == null)
+                continue;
+
             final Optional<ItemStack> tracked = count.keySet().stream().filter(current::isSimilar).findFirst();
 
             // Should always be true but I don't know Spigot, so I'm gonna play it safe
@@ -70,7 +138,7 @@ public class SortCommandExecutor implements CommandExecutor {
                 final int amount = count.get(tracked.get());
 
                 if (amount == 0) {
-                    inventory.setItem(i, new ItemStack(Material.AIR));
+                    stacks[i] = new ItemStack(Material.AIR);
                 } else {
                     final int currentAmount = current.getAmount();
 
