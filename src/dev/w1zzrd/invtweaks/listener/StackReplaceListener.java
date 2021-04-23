@@ -1,4 +1,4 @@
-package dev.w1zzrd.invtweaks.listeners;
+package dev.w1zzrd.invtweaks.listener;
 
 import dev.w1zzrd.logging.LoggerFactory;
 import org.bukkit.Material;
