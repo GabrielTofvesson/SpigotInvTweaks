@@ -28,6 +28,8 @@ public class SortCommandExecutor implements CommandExecutor {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+        // Since we rely on targeting an inventory either by what we're looking at or by whom it was called,
+        // there is an implicit dependency on that the command is called by (at the very least) an entity
         if (!(sender instanceof Player)) {
             sender.sendMessage("Command must be run by a player");
             return false;
@@ -35,6 +37,7 @@ public class SortCommandExecutor implements CommandExecutor {
 
         final Player player = (Player) sender;
 
+        // The block the player is currently looking at (if applicable)
         final BlockState target = player.getTargetBlock(null, 6).getState();
 
         // Sort appropriate inventory holder
@@ -48,18 +51,29 @@ public class SortCommandExecutor implements CommandExecutor {
         return true;
     }
 
+    /**
+     * Sort the inventory of a Shulker Box
+     * @param shulkerBox Shulker Box to sort
+     */
     private static void sortShulkerBox(final ShulkerBox shulkerBox) {
         sortInventory(shulkerBox.getInventory());
     }
 
+    /**
+     * Sort the inventory of a chest. If the given chest is part of a double-chest, the inventory of both chests is
+     * observed as one large inventory when sorting.
+     * @param chest Chest (or stand-in for double-chest) to sort
+     */
     private static void sortChest(final Chest chest) {
         final InventoryHolder chestInventoryHolder = chest.getBlockInventory().getHolder();
 
         assert chestInventoryHolder != null;
 
+        // Get the inventory holder for the chest (in case we're dealing with a double-chest)
         final Inventory chestInventory = chestInventoryHolder.getInventory();
         final ItemStack[] toSort;
 
+        // If we're sorting a double-chest, we need to combine the two inventories for sorting
         if (chestInventoryHolder instanceof DoubleChest) {
             final ItemStack[] c1 = ((DoubleChestInventory) chestInventory).getLeftSide().getContents();
             final ItemStack[] c2 = ((DoubleChestInventory) chestInventory).getRightSide().getContents();
@@ -71,9 +85,11 @@ public class SortCommandExecutor implements CommandExecutor {
             toSort = chestInventory.getContents();
         }
 
+        // Merge all stacks and then sort them
         mergeStacks(toSort);
         sortStacks(toSort);
 
+        // If we're sorting a double-chest, we need to separate the combined inventories again
         if (chestInventoryHolder instanceof DoubleChest) {
             final Inventory invLeft = ((DoubleChestInventory) chestInventory).getLeftSide();
             final Inventory invRight = ((DoubleChestInventory) chestInventory).getRightSide();
@@ -91,6 +107,11 @@ public class SortCommandExecutor implements CommandExecutor {
         }
     }
 
+    /**
+     * Sort the main inventory of a player. Note that the hotbar is not included in the sorting, nor is the off hand or
+     * any of the armour slots
+     * @param player Player whose inventory is to be sorted
+     */
     private static void sortPlayer(final Player player) {
         final ItemStack[] stacks = player.getInventory().getContents();
 
@@ -102,6 +123,10 @@ public class SortCommandExecutor implements CommandExecutor {
         player.getInventory().setContents(stacks);
     }
 
+    /**
+     * Sort all slots in a given inventory
+     * @param inventory Inventory to sort
+     */
     private static void sortInventory(final Inventory inventory) {
         final ItemStack[] stacks = inventory.getContents();
         mergeStacks(stacks);
@@ -109,6 +134,10 @@ public class SortCommandExecutor implements CommandExecutor {
         inventory.setContents(stacks);
     }
 
+    /**
+     * Sort ItemStacks
+     * @param stacks ItemStacks to sort
+     */
     private static void sortStacks(final ItemStack[] stacks) {
         Arrays.sort(stacks, (o1, o2) -> {
             if (o1 == null || o2 == null)
@@ -134,6 +163,10 @@ public class SortCommandExecutor implements CommandExecutor {
         });
     }
 
+    /**
+     * Merge disparate ItemStacks of the same type
+     * @param stacks ItemStacks to attempt to merge
+     */
     private static void mergeStacks(final ItemStack[] stacks) {
         final HashMap<ItemStack, Integer> count = new HashMap<>();
         for (final ItemStack stack : stacks) {
