@@ -196,17 +196,11 @@ public class SortCommandExecutor implements CommandExecutor {
                 if (amount == 0) {
                     stacks[i] = new ItemStack(Material.AIR);
                 } else {
-                    final int currentAmount = current.getAmount();
+                    final int newAmount = Math.min(amount, current.getMaxStackSize());
+                    current.setAmount(newAmount);
 
-                    if (currentAmount < current.getMaxStackSize()) {
-                        final int newAmount = Math.min(amount, current.getMaxStackSize());
-                        current.setAmount(newAmount);
-
-                        // Update remaining count of given material
-                        count.put(key, amount - newAmount);
-                    } else {
-                        count.put(key, amount - currentAmount);
-                    }
+                    // Update remaining count of given material
+                    count.put(key, amount - newAmount);
                 }
             } else {
                 logger.warning("Found untracked ItemStack while merging stacks");
