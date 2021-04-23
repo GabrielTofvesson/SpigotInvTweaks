@@ -108,7 +108,28 @@ public class SortCommandExecutor implements CommandExecutor {
     }
 
     private static void sortStacks(final ItemStack[] stacks) {
-        Arrays.sort(stacks, new ItemStackComparator());
+        Arrays.sort(stacks, (o1, o2) -> {
+            if (o1 == null || o2 == null)
+                return o1 == o2 ? 0 : o1 == null ? 1 : -1;
+
+            final Material m1 = o1.getType();
+            final Material m2 = o2.getType();
+
+            // Technically not a stable sort, but w/e
+            if (m1 == AIR || m1 == CAVE_AIR || m1 == VOID_AIR)
+                return m2 == AIR || m2 == CAVE_AIR || m2 == VOID_AIR ? 0 : -1;
+
+            // Blocks appear earlier than items
+            if (m1.isBlock() != m2.isBlock())
+                return m1.isBlock() ? 1 : -1;
+
+            // Stacks of similar type are organized according to stack size
+            if (o1.isSimilar(o2))
+                return Integer.compare(o1.getAmount(), o2.getAmount());
+
+            // Differing stacks are sorted according to enum ordinal (arbitrary but I'm not manually designing an order)
+            return Integer.compare(m1.ordinal(), m2.ordinal());
+        });
     }
 
     private static void mergeStacks(final ItemStack[] stacks) {
@@ -155,32 +176,6 @@ public class SortCommandExecutor implements CommandExecutor {
             } else {
                 logger.warning("Found untracked ItemStack while merging stacks");
             }
-        }
-    }
-
-    private static class ItemStackComparator implements Comparator<ItemStack> {
-        @Override
-        public int compare(ItemStack o1, ItemStack o2) {
-            if (o1 == null || o2 == null)
-                return o1 == o2 ? 0 : o1 == null ? 1 : -1;
-
-            final Material m1 = o1.getType();
-            final Material m2 = o2.getType();
-
-            // Technically not a stable sort, but w/e
-            if (m1 == AIR || m1 == CAVE_AIR || m1 == VOID_AIR)
-                return m2 == AIR || m2 == CAVE_AIR || m2 == VOID_AIR ? 0 : -1;
-
-            // Blocks appear earlier than items
-            if (m1.isBlock() != m2.isBlock())
-                return m1.isBlock() ? 1 : -1;
-
-            // Stacks of similar type are organized according to stack size
-            if (o1.isSimilar(o2))
-                return Integer.compare(o1.getAmount(), o2.getAmount());
-
-            // Differing stacks are sorted according to enum ordinal (arbitrary but I'm not manually designing an order)
-            return Integer.compare(m1.ordinal(), m2.ordinal());
         }
     }
 }
