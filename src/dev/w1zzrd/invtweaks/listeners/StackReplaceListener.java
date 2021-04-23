@@ -30,6 +30,8 @@ public class StackReplaceListener implements Listener {
                     inv.setItem(event.getHand(), checkStack);
 
                     logger.info("Moved stack into players empty hand");
+
+                    break;
                 }
             }
         }
