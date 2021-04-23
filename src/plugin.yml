@@ -3,3 +3,8 @@ version: 1.0
 author: IKEA_Jesus
 main: dev.w1zzrd.invtweaks.InvTweaksPlugin
 api-version: 1.13
+commands:
+  sort:
+    description: Sort chest you are looking at
+    usage: /<command>
+    permission: invtweaks.sort
