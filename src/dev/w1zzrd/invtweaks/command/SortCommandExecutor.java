@@ -2,10 +2,7 @@ package dev.w1zzrd.invtweaks.command;
 
 import dev.w1zzrd.logging.LoggerFactory;
 import org.bukkit.Material;
-import org.bukkit.block.BlockState;
-import org.bukkit.block.Chest;
-import org.bukkit.block.DoubleChest;
-import org.bukkit.block.ShulkerBox;
+import org.bukkit.block.*;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -38,7 +35,11 @@ public class SortCommandExecutor implements CommandExecutor {
         final Player player = (Player) sender;
 
         // The block the player is currently looking at (if applicable)
-        final BlockState target = player.getTargetBlock(null, 6).getState();
+        final Block targetBlock = player.getTargetBlockExact(6);
+        if (targetBlock == null)
+            return false;
+
+        final BlockState target = targetBlock.getState();
 
         // Sort appropriate inventory holder
         if (target instanceof Chest)
