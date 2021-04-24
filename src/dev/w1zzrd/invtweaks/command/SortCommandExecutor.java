@@ -1,5 +1,6 @@
 package dev.w1zzrd.invtweaks.command;
 
+import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.block.*;
@@ -46,12 +47,18 @@ public class SortCommandExecutor implements CommandExecutor {
         final BlockState target = targetBlock.getState();
 
         // Sort appropriate inventory holder
-        if (target instanceof Chest)
+        if (target instanceof Chest) {
             sortChest((Chest) target);
-        else if (target instanceof ShulkerBox)
+            player.spigot().sendMessage(new TextComponent("Sorted chest"));
+        }
+        else if (target instanceof ShulkerBox) {
             sortShulkerBox((ShulkerBox) target);
-        else
+            player.spigot().sendMessage(new TextComponent("Sorted shulker box"));
+        }
+        else {
             sortPlayer(player);
+            player.spigot().sendMessage(new TextComponent("Sorted inventory"));
+        }
 
         return true;
     }

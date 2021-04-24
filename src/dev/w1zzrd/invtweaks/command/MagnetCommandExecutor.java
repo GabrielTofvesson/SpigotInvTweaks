@@ -1,5 +1,6 @@
 package dev.w1zzrd.invtweaks.command;
 
+import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -11,9 +12,17 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitTask;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.UUID;
+import java.util.logging.Logger;
+
+import static dev.w1zzrd.invtweaks.InvTweaksPlugin.LOG_PLUGIN_NAME;
 
 public class MagnetCommandExecutor implements CommandExecutor {
+
+    private static final Logger logger = Bukkit.getLogger();
 
     /**
      * List of players with magnet mode active
@@ -53,7 +62,10 @@ public class MagnetCommandExecutor implements CommandExecutor {
         if (!(sender instanceof Player))
             return false;
 
-        toggleMagnet((Player) sender);
+        final boolean isMagnetActive = toggleMagnet((Player) sender);
+
+        logger.fine(LOG_PLUGIN_NAME + " Player " + sender.getName() + (isMagnetActive ? " " : " de-") + "activated magnet");
+        sender.spigot().sendMessage(new TextComponent((isMagnetActive ? "Enabled" : "Disabled") + " magnetism"));
 
         return true;
     }
@@ -180,13 +192,16 @@ public class MagnetCommandExecutor implements CommandExecutor {
      * disabled.
      */
     private void updateMagnetismTask() {
-        if (refreshTask == null && activeMagnets.size() > 0 && plugin.isEnabled())
+        if (refreshTask == null && activeMagnets.size() > 0 && plugin.isEnabled()) {
             refreshTask = Bukkit.getScheduler().runTaskTimer(plugin, this::taskApplyMagnetism, 0, interval);
+            logger.info(LOG_PLUGIN_NAME + " Activated magnetism check task");
+        }
         else if (refreshTask != null && (activeMagnets.size() == 0 || !plugin.isEnabled())) {
             Bukkit.getScheduler().cancelTask(refreshTask.getTaskId());
             refreshTask = null;
             activeMagnets.clear();
             divIndex = 0;
+            logger.info(LOG_PLUGIN_NAME + " De-activated magnetism check task");
         }
     }
 
