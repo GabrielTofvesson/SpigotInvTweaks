@@ -19,14 +19,14 @@ public final class InvTweaksPlugin extends JavaPlugin {
     /**
      * Plugin logging tag. This should be prepended to any log messages sent by this plugin
      */
-    public static final String LOG_PLUGIN_NAME = "[InvTweaks]";
+    public static final String LOG_PLUGIN_NAME = "[InventoryTweaks]";
 
     private final Logger logger = Bukkit.getLogger();
 
 
     @Override
     public void onEnable() {
-        logger.info(LOG_PLUGIN_NAME + " Plugin enabled");
+        logger.fine(LOG_PLUGIN_NAME + " Plugin enabled");
 
         initCommands();
         initEvents();
@@ -34,7 +34,7 @@ public final class InvTweaksPlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        logger.info(LOG_PLUGIN_NAME + " Plugin disabled");
+        logger.fine(LOG_PLUGIN_NAME + " Plugin disabled");
 
         // Un-register all listeners
         HandlerList.unregisterAll(this);
