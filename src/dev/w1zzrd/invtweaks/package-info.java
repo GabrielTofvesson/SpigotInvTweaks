@@ -6,6 +6,9 @@
  * <pre>
  * /sort    Sort a targeted chest or shulker box or the senders inventory if
  *          aforementioned blocks aren't targeted
+ * /magnet  Toggle magnetism for the sender. When magnetism is enabled, all
+ *          items within a 16x16x16 cube around the player that can be picked
+ *          up are teleported to the player relatively frequently
  * </pre>
  * <h3>Features</h3>
  * <ul>
