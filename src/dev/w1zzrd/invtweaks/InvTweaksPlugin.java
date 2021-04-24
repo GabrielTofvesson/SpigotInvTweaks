@@ -25,16 +25,27 @@ public final class InvTweaksPlugin extends JavaPlugin {
     public void onEnable() {
         logger.info(LOG_PLUGIN_NAME + " Plugin enabled");
 
-        final PluginManager pluginManager = getServer().getPluginManager();
-
-        pluginManager.registerEvents(new StackReplaceListener(), this);
-        pluginManager.registerEvents(new SortListener(), this);
+        initCommands();
+        initEvents();
     }
 
     @Override
     public void onDisable() {
         logger.info(LOG_PLUGIN_NAME + " Plugin disabled");
 
+        // Un-register all listeners
         HandlerList.unregisterAll(this);
+    }
+
+
+    private void initCommands() {
+        Objects.requireNonNull(getCommand("sort")).setExecutor(new SortCommandExecutor());
+    }
+
+    private void initEvents() {
+        final PluginManager pluginManager = getServer().getPluginManager();
+
+        pluginManager.registerEvents(new StackReplaceListener(), this);
+        pluginManager.registerEvents(new SortListener(), this);
     }
 }
