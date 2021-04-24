@@ -23,7 +23,8 @@ public class SortListener implements Listener {
 
 
         if (event.hasBlock() &&
-                (event.getClickedBlock().getState() instanceof Chest || event.getClickedBlock().getState() instanceof ShulkerBox) &&
+                (Objects.requireNonNull(event.getClickedBlock()).getState() instanceof Chest ||
+                        event.getClickedBlock().getState() instanceof ShulkerBox) &&
                 event.getPlayer().isSneaking() &&
                 playerInventory.getItemInMainHand().getType().name().endsWith("_SWORD")
         ) {
