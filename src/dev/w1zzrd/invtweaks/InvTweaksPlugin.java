@@ -16,6 +16,9 @@ import java.util.logging.Logger;
  */
 public final class InvTweaksPlugin extends JavaPlugin {
 
+    /**
+     * Plugin logging tag. This should be prepended to any log messages sent by this plugin
+     */
     public static final String LOG_PLUGIN_NAME = "[InvTweaks]";
 
     private final Logger logger = Bukkit.getLogger();
@@ -38,10 +41,16 @@ public final class InvTweaksPlugin extends JavaPlugin {
     }
 
 
+    /**
+     * Initialize commands registered by this plugin
+     */
     private void initCommands() {
         Objects.requireNonNull(getCommand("sort")).setExecutor(new SortCommandExecutor());
     }
 
+    /**
+     * Initialize event listeners for this plugin
+     */
     private void initEvents() {
         final PluginManager pluginManager = getServer().getPluginManager();
 

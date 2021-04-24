@@ -22,6 +22,12 @@ public class SortListener implements Listener {
         final PlayerInventory playerInventory = event.getPlayer().getInventory();
 
 
+        /* Criteria for a successful /sort trigger (in order of occurrence in code):
+         *   1. Player must be attempting to interact with a block
+         *   2. Player must be attempting to interact with a Chest or Shulker Box
+         *   3. Player must be sneaking
+         *   4. Player must be holding a sword in their main hand
+         */
         if (event.hasBlock() &&
                 (Objects.requireNonNull(event.getClickedBlock()).getState() instanceof Chest ||
                         event.getClickedBlock().getState() instanceof ShulkerBox) &&

@@ -122,6 +122,7 @@ public class SortCommandExecutor implements CommandExecutor {
         logger.fine(LOG_PLUGIN_NAME + " Sorting player");
         final ItemStack[] stacks = player.getInventory().getContents();
 
+        // Get sortable subset of players inventory (main inventory, sans hotbar)
         final ItemStack[] sortable = Arrays.copyOfRange(stacks, 9, 36);
         organizeStacks(sortable);
         System.arraycopy(sortable, 0, stacks, 9, sortable.length);
@@ -183,23 +184,29 @@ public class SortCommandExecutor implements CommandExecutor {
      */
     private static void mergeStacks(final ItemStack[] stacks) {
         final HashMap<ItemStack, Integer> count = new HashMap<>();
+
+        // First pass counts total amount of items for each unique stack type
         for (final ItemStack stack : stacks) {
             if (stack == null)
                 continue;
 
+            // Check if an instance of the current ItemStack already occurred earlier in the pass
             final Optional<ItemStack> tracked = count.keySet().stream().filter(stack::isSimilar).findFirst();
 
             if (tracked.isPresent())
-                count.put(tracked.get(), count.get(tracked.get()) + stack.getAmount());
+                count.put(tracked.get(), count.get(tracked.get()) + stack.getAmount()); // Increment existing count
             else
-                count.put(stack, stack.getAmount());
+                count.put(stack, stack.getAmount());                                    // Start a new count
         }
 
+        // Second pass collects stacks such that, at most, only one stack for
+        // each type will not be holding the maximum stack size after the pass is done
         for (int i = stacks.length - 1; i >= 0; --i) {
             final ItemStack current = stacks[i];
             if (current == null)
                 continue;
 
+            // Since each item in the inventory should be tracked from the first pass, this should always hold a value
             final Optional<ItemStack> tracked = count.keySet().stream().filter(current::isSimilar).findFirst();
 
             // Should always be true but I don't know Spigot, so I'm gonna play it safe
@@ -210,6 +217,7 @@ public class SortCommandExecutor implements CommandExecutor {
                 if (amount == 0) {
                     stacks[i] = null;
                 } else {
+                    // Set the stack to the highest possible value within the stack size and remaining-items constraints
                     final int newAmount = Math.min(amount, current.getMaxStackSize());
                     current.setAmount(newAmount);
 
