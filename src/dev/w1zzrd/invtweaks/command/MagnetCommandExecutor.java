@@ -3,7 +3,6 @@ package dev.w1zzrd.invtweaks.command;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -138,6 +137,28 @@ public class MagnetCommandExecutor implements CommandExecutor {
     }
 
     /**
+     * Remove all given UUIDs from the list of active magnets
+     * @param uuids UUIDs to remove from active magnets
+     * @return True if a call to this method changed the list of active magnets
+     */
+    public boolean removeMagnets(final Iterable<UUID> uuids) {
+        try {
+            boolean changed = false;
+            for(final UUID uuid : uuids) {
+                final int index = Collections.binarySearch(activeMagnets, uuid);
+                if (index < 0)
+                    continue;
+
+                activeMagnets.remove(index);
+                changed = true;
+            }
+            return changed;
+        } finally {
+            updateMagnetismTask();
+        }
+    }
+
+    /**
      * Add a player to the list of active magnets
      * @param player Player to mark as a magnet
      * @return True if a call to this method changed the list of active magnets
@@ -236,7 +257,7 @@ public class MagnetCommandExecutor implements CommandExecutor {
         }
 
         // Remove logged-out players
-        toRemove.forEach(this::removeMagnet);
+        removeMagnets(toRemove);
 
         // Update subdivision to check next iteration
         divIndex = (divIndex + 1) % subdivide;
