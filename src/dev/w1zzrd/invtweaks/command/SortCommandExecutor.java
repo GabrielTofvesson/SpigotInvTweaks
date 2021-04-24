@@ -93,8 +93,7 @@ public class SortCommandExecutor implements CommandExecutor {
         }
 
         // Merge all stacks and then sort them
-        mergeStacks(toSort);
-        sortStacks(toSort);
+        organizeStacks(toSort);
 
         // If we're sorting a double-chest, we need to separate the combined inventories again
         if (chestInventoryHolder instanceof DoubleChest) {
@@ -124,8 +123,7 @@ public class SortCommandExecutor implements CommandExecutor {
         final ItemStack[] stacks = player.getInventory().getContents();
 
         final ItemStack[] sortable = Arrays.copyOfRange(stacks, 9, 36);
-        mergeStacks(sortable);
-        sortStacks(sortable);
+        organizeStacks(sortable);
         System.arraycopy(sortable, 0, stacks, 9, sortable.length);
 
         player.getInventory().setContents(stacks);
@@ -137,9 +135,17 @@ public class SortCommandExecutor implements CommandExecutor {
      */
     private static void sortInventory(final Inventory inventory) {
         final ItemStack[] stacks = inventory.getContents();
+        organizeStacks(stacks);
+        inventory.setContents(stacks);
+    }
+
+    /**
+     * Perform a full stack-merge and sort (in that order) for the given array of ItemStacks
+     * @param stacks ItemStacks to merge and sort
+     */
+    private static void organizeStacks(final ItemStack[] stacks) {
         mergeStacks(stacks);
         sortStacks(stacks);
-        inventory.setContents(stacks);
     }
 
     /**
