@@ -14,6 +14,9 @@ import java.util.logging.Logger;
 
 import static dev.w1zzrd.invtweaks.InvTweaksPlugin.LOG_PLUGIN_NAME;
 
+/**
+ * Handler for events/interactions that should trigger a /sort command
+ */
 public class SortListener implements Listener {
 
     private static final Logger logger = Bukkit.getLogger();

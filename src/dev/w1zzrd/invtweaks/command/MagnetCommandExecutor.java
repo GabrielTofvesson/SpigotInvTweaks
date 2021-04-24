@@ -19,6 +19,9 @@ import java.util.logging.Logger;
 
 import static dev.w1zzrd.invtweaks.InvTweaksPlugin.LOG_PLUGIN_NAME;
 
+/**
+ * Handler for executions of /magnet command
+ */
 public class MagnetCommandExecutor implements CommandExecutor {
 
     private static final Logger logger = Bukkit.getLogger();

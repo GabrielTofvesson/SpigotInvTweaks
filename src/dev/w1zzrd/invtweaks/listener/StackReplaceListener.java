@@ -12,6 +12,9 @@ import java.util.logging.Logger;
 
 import static dev.w1zzrd.invtweaks.InvTweaksPlugin.LOG_PLUGIN_NAME;
 
+/**
+ * Handler for events/interactions that should trigger stack replacements in a players inventory
+ */
 public class StackReplaceListener implements Listener {
 
     private static final int MAX_MAIN_INV = 35;

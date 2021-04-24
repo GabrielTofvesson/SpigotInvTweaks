@@ -21,6 +21,9 @@ import java.util.logging.Logger;
 import static dev.w1zzrd.invtweaks.InvTweaksPlugin.LOG_PLUGIN_NAME;
 import static org.bukkit.Material.*;
 
+/**
+ * Handler for executions of /sort command
+ */
 public class SortCommandExecutor implements CommandExecutor {
 
     private static final Logger logger = Bukkit.getLogger();
