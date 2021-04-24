@@ -1,6 +1,6 @@
 package dev.w1zzrd.invtweaks.listener;
 
-import dev.w1zzrd.logging.LoggerFactory;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -10,12 +10,14 @@ import org.bukkit.inventory.PlayerInventory;
 
 import java.util.logging.Logger;
 
+import static dev.w1zzrd.invtweaks.InvTweaksPlugin.LOG_PLUGIN_NAME;
+
 public class StackReplaceListener implements Listener {
 
     private static final int MAX_MAIN_INV = 35;
 
 
-    private final Logger logger = LoggerFactory.getLogger(StackReplaceListener.class);
+    private final Logger logger = Bukkit.getLogger();
 
     @EventHandler
     public void onBlockPlacedEvent(final BlockPlaceEvent event) {
@@ -29,7 +31,7 @@ public class StackReplaceListener implements Listener {
                     inv.setItem(i, new ItemStack(Material.AIR, 0));
                     inv.setItem(event.getHand(), checkStack);
 
-                    logger.info("Moved stack into players empty hand");
+                    logger.fine(LOG_PLUGIN_NAME + " Moved stack into empty hand for player " + event.getPlayer().getName());
 
                     break;
                 }

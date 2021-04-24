@@ -1,6 +1,6 @@
 package dev.w1zzrd.invtweaks.command;
 
-import dev.w1zzrd.logging.LoggerFactory;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.block.*;
 import org.bukkit.command.Command;
@@ -17,22 +17,26 @@ import java.util.HashMap;
 import java.util.Optional;
 import java.util.logging.Logger;
 
+import static dev.w1zzrd.invtweaks.InvTweaksPlugin.LOG_PLUGIN_NAME;
 import static org.bukkit.Material.*;
 
 public class SortCommandExecutor implements CommandExecutor {
 
-    private static final Logger logger = LoggerFactory.getLogger(SortCommandExecutor.class);
+    private static final Logger logger = Bukkit.getLogger();
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         // Since we rely on targeting an inventory either by what we're looking at or by whom it was called,
         // there is an implicit dependency on that the command is called by (at the very least) an entity
         if (!(sender instanceof Player)) {
+            logger.info(LOG_PLUGIN_NAME + " Sort command triggered by non-player");
             sender.sendMessage("Command must be run by a player");
             return false;
         }
 
         final Player player = (Player) sender;
+
+        logger.fine(LOG_PLUGIN_NAME + " Sort triggered by player " + player.getName());
 
         // The block the player is currently looking at (if applicable)
         final Block targetBlock = player.getTargetBlockExact(6);
@@ -57,6 +61,7 @@ public class SortCommandExecutor implements CommandExecutor {
      * @param shulkerBox Shulker Box to sort
      */
     private static void sortShulkerBox(final ShulkerBox shulkerBox) {
+        logger.fine(LOG_PLUGIN_NAME + " Sorting shulker box");
         sortInventory(shulkerBox.getInventory());
     }
 
@@ -66,6 +71,7 @@ public class SortCommandExecutor implements CommandExecutor {
      * @param chest Chest (or stand-in for double-chest) to sort
      */
     private static void sortChest(final Chest chest) {
+        logger.fine(LOG_PLUGIN_NAME + " Sorting chest");
         final InventoryHolder chestInventoryHolder = chest.getBlockInventory().getHolder();
 
         assert chestInventoryHolder != null;
@@ -114,6 +120,7 @@ public class SortCommandExecutor implements CommandExecutor {
      * @param player Player whose inventory is to be sorted
      */
     private static void sortPlayer(final Player player) {
+        logger.fine(LOG_PLUGIN_NAME + " Sorting player");
         final ItemStack[] stacks = player.getInventory().getContents();
 
         final ItemStack[] sortable = Arrays.copyOfRange(stacks, 9, 36);
@@ -204,7 +211,7 @@ public class SortCommandExecutor implements CommandExecutor {
                     count.put(key, amount - newAmount);
                 }
             } else {
-                logger.warning("Found untracked ItemStack while merging stacks");
+                logger.warning(LOG_PLUGIN_NAME + " Found untracked ItemStack while merging stacks");
             }
         }
     }
