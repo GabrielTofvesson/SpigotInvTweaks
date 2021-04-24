@@ -8,3 +8,7 @@ commands:
     description: Sort chest you are looking at
     usage: /<command>
     permission: invtweaks.sort
+  magnet:
+    description: Toggle item magnet mode for player
+    usage: /<command>
+    permission: invtweaks.magnet

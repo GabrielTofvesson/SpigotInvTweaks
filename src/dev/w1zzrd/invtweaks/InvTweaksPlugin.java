@@ -1,5 +1,6 @@
 package dev.w1zzrd.invtweaks;
 
+import dev.w1zzrd.invtweaks.command.MagnetCommandExecutor;
 import dev.w1zzrd.invtweaks.command.SortCommandExecutor;
 import dev.w1zzrd.invtweaks.listener.SortListener;
 import dev.w1zzrd.invtweaks.listener.StackReplaceListener;
@@ -21,8 +22,16 @@ public final class InvTweaksPlugin extends JavaPlugin {
      */
     public static final String LOG_PLUGIN_NAME = "[InventoryTweaks]";
 
+    // TODO: Magic values: make a config
+    private static final double MAGNET_DISTANCE = 8.0;
+    private static final long MAGNET_INTERVAL = 5;
+    private static final int MAGNET_SUBDIVIDE = 2;
+
     private final Logger logger = Bukkit.getLogger();
 
+    // Command executor references in case I need them or something idk
+    private SortCommandExecutor sortCommandExecutor;
+    private MagnetCommandExecutor magnetCommandExecutor;
 
     @Override
     public void onEnable() {
@@ -36,8 +45,8 @@ public final class InvTweaksPlugin extends JavaPlugin {
     public void onDisable() {
         logger.fine(LOG_PLUGIN_NAME + " Plugin disabled");
 
-        // Un-register all listeners
-        HandlerList.unregisterAll(this);
+        disableEvents();
+        disableCommands();
     }
 
 
@@ -45,7 +54,12 @@ public final class InvTweaksPlugin extends JavaPlugin {
      * Initialize commands registered by this plugin
      */
     private void initCommands() {
-        Objects.requireNonNull(getCommand("sort")).setExecutor(new SortCommandExecutor());
+        sortCommandExecutor = new SortCommandExecutor();
+        magnetCommandExecutor = new MagnetCommandExecutor(this, MAGNET_DISTANCE, MAGNET_INTERVAL, MAGNET_SUBDIVIDE);
+
+        // TODO: Bind command by annotation
+        Objects.requireNonNull(getCommand("sort")).setExecutor(sortCommandExecutor);
+        Objects.requireNonNull(getCommand("magnet")).setExecutor(magnetCommandExecutor);
     }
 
     /**
@@ -54,7 +68,24 @@ public final class InvTweaksPlugin extends JavaPlugin {
     private void initEvents() {
         final PluginManager pluginManager = getServer().getPluginManager();
 
+        // TODO: Register listeners by annotation
         pluginManager.registerEvents(new StackReplaceListener(), this);
         pluginManager.registerEvents(new SortListener(), this);
+    }
+
+    /**
+     * Do whatever is necessary to disable commands and their execution
+     */
+    private void disableCommands() {
+        sortCommandExecutor = null;
+        magnetCommandExecutor = null;
+    }
+
+    /**
+     * Do whatever is necessary to disable event listeners
+     */
+    private void disableEvents() {
+        // Un-register all listeners
+        HandlerList.unregisterAll(this);
     }
 }
