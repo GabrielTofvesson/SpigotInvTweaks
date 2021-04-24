@@ -44,25 +44,24 @@ public class SortCommandExecutor implements CommandExecutor {
 
         // The block the player is currently looking at (if applicable)
         final Block targetBlock = player.getTargetBlockExact(6);
-        if (targetBlock == null)
-            return false;
+        if (targetBlock != null) {
+            final BlockState target = targetBlock.getState();
 
-        final BlockState target = targetBlock.getState();
-
-        // Sort appropriate inventory holder
-        if (target instanceof Chest) {
-            sortChest((Chest) target);
-            player.spigot().sendMessage(new TextComponent("Sorted chest"));
-        }
-        else if (target instanceof ShulkerBox) {
-            sortShulkerBox((ShulkerBox) target);
-            player.spigot().sendMessage(new TextComponent("Sorted shulker box"));
-        }
-        else {
-            sortPlayer(player);
-            player.spigot().sendMessage(new TextComponent("Sorted inventory"));
+            // Sort appropriate inventory holder
+            if (target instanceof Chest) {
+                sortChest((Chest) target);
+                player.spigot().sendMessage(new TextComponent("Sorted chest"));
+                return true;
+            }
+            else if (target instanceof ShulkerBox) {
+                sortShulkerBox((ShulkerBox) target);
+                player.spigot().sendMessage(new TextComponent("Sorted shulker box"));
+                return true;
+            }
         }
 
+        sortPlayer(player);
+        player.spigot().sendMessage(new TextComponent("Sorted inventory"));
         return true;
     }
 
