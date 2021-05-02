@@ -3,6 +3,7 @@
     <output-path>$PROJECT_DIR$/out/artifacts/SpigotInvTweaks_jar</output-path>
     <root id="archive" name="SpigotInvTweaks.jar">
       <element id="module-output" name="SpigotInvTweaks" />
+      <element id="dir-copy" path="$PROJECT_DIR$/res" />
     </root>
   </artifact>
 </component>
