@@ -1,5 +1,5 @@
 magnet:
-  ==: dev.w1zzrd.invtweaks.config.MagnetConfig
+  ==: dev.w1zzrd.invtweaks.serialization.MagnetConfig
   radius: 8.0
   interval: 5
   subdivide: 1
