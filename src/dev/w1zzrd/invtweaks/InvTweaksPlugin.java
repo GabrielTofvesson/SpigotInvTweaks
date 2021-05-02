@@ -2,9 +2,11 @@ package dev.w1zzrd.invtweaks;
 
 import dev.w1zzrd.invtweaks.command.MagnetCommandExecutor;
 import dev.w1zzrd.invtweaks.command.SortCommandExecutor;
+import dev.w1zzrd.invtweaks.config.MagnetConfig;
 import dev.w1zzrd.invtweaks.listener.SortListener;
 import dev.w1zzrd.invtweaks.listener.StackReplaceListener;
 import org.bukkit.Bukkit;
+import org.bukkit.configuration.serialization.ConfigurationSerialization;
 import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -22,11 +24,6 @@ public final class InvTweaksPlugin extends JavaPlugin {
      */
     public static final String LOG_PLUGIN_NAME = "[InventoryTweaks]";
 
-    // TODO: Magic values: make a config
-    private static final double MAGNET_DISTANCE = 8.0;
-    private static final long MAGNET_INTERVAL = 5;
-    private static final int MAGNET_SUBDIVIDE = 2;
-
     private final Logger logger = Bukkit.getLogger();
 
     // Command executor references in case I need them or something idk
@@ -36,6 +33,12 @@ public final class InvTweaksPlugin extends JavaPlugin {
     @Override
     public void onEnable() {
         logger.fine(LOG_PLUGIN_NAME + " Plugin enabled");
+
+        registerSerializers();
+
+        getConfig().options().copyDefaults(true);
+
+        saveConfig();
 
         initCommands();
         initEvents();
@@ -47,15 +50,28 @@ public final class InvTweaksPlugin extends JavaPlugin {
 
         disableEvents();
         disableCommands();
+
+        saveConfig();
+
+        unregisterSerializers();
     }
 
+    @Override
+    public void reloadConfig() {
+        super.reloadConfig();
+
+        getConfig().options().copyDefaults(true);
+
+        if (magnetCommandExecutor != null)
+            magnetCommandExecutor.reloadConfig();
+    }
 
     /**
      * Initialize commands registered by this plugin
      */
     private void initCommands() {
         sortCommandExecutor = new SortCommandExecutor();
-        magnetCommandExecutor = new MagnetCommandExecutor(this, MAGNET_DISTANCE, MAGNET_INTERVAL, MAGNET_SUBDIVIDE);
+        magnetCommandExecutor = new MagnetCommandExecutor(this);
 
         // TODO: Bind command by annotation
         Objects.requireNonNull(getCommand("sort")).setExecutor(sortCommandExecutor);
@@ -68,7 +84,6 @@ public final class InvTweaksPlugin extends JavaPlugin {
     private void initEvents() {
         final PluginManager pluginManager = getServer().getPluginManager();
 
-        // TODO: Register listeners by annotation
         pluginManager.registerEvents(new StackReplaceListener(), this);
         pluginManager.registerEvents(new SortListener(), this);
     }
@@ -87,5 +102,13 @@ public final class InvTweaksPlugin extends JavaPlugin {
     private void disableEvents() {
         // Un-register all listeners
         HandlerList.unregisterAll(this);
+    }
+
+    private void registerSerializers() {
+        ConfigurationSerialization.registerClass(MagnetConfig.class);
+    }
+
+    private void unregisterSerializers() {
+        ConfigurationSerialization.unregisterClass(MagnetConfig.class);
     }
 }

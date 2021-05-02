@@ -1,5 +1,6 @@
 package dev.w1zzrd.invtweaks.command;
 
+import dev.w1zzrd.invtweaks.config.MagnetConfig;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -26,6 +27,8 @@ public class MagnetCommandExecutor implements CommandExecutor {
 
     private static final Logger logger = Bukkit.getLogger();
 
+    private static final String CONFIG_PATH = "magnet";
+
     /**
      * List of players with magnet mode active
      */
@@ -33,10 +36,7 @@ public class MagnetCommandExecutor implements CommandExecutor {
     private final List<UUID> activeMagnetsView = Collections.unmodifiableList(activeMagnets);
 
     private final Plugin plugin;
-    private final long interval;
-    private final int subdivide;
-
-    private final double sqRadius;
+    private MagnetConfig config;
 
 
     private int divIndex = 0;
@@ -46,18 +46,20 @@ public class MagnetCommandExecutor implements CommandExecutor {
     /**
      * Initialize the magnet executor and manger
      * @param plugin Owner plugin for this executor
-     * @param sqRadius Radius of the cube to search for items in (half side length)
-     * @param interval Interval (in ticks) between magnetism checks for active magnets
-     * @param subdivide What fraction of the list of active magnets should be iterated over during a magnetism check.
-     *                  Set to 1 to check the whole list each iteration
      */
-    public MagnetCommandExecutor(final Plugin plugin, final double sqRadius, final long interval, final int subdivide) {
+    public MagnetCommandExecutor(final Plugin plugin) {
         this.plugin = plugin;
-        this.sqRadius = sqRadius;
-        this.interval = interval;
-        this.subdivide = subdivide;
+
+        // Don't call reloadConfig to ensure we don't leak `this` during construction (a bit pedantic)
+        config = loadConfig(plugin);
     }
 
+    /**
+     * Reload magnet command configuration
+     */
+    public void reloadConfig() {
+        config = loadConfig(plugin);
+    }
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
@@ -217,7 +219,7 @@ public class MagnetCommandExecutor implements CommandExecutor {
      */
     private void updateMagnetismTask() {
         if (refreshTask == null && activeMagnets.size() > 0 && plugin.isEnabled()) {
-            refreshTask = Bukkit.getScheduler().runTaskTimer(plugin, this::taskApplyMagnetism, 0, interval);
+            refreshTask = Bukkit.getScheduler().runTaskTimer(plugin, this::taskApplyMagnetism, 0, config.getInterval());
             logger.info(LOG_PLUGIN_NAME + " Activated magnetism check task");
         }
         else if (refreshTask != null && (activeMagnets.size() == 0 || !plugin.isEnabled())) {
@@ -238,6 +240,9 @@ public class MagnetCommandExecutor implements CommandExecutor {
         final int size = activeMagnets.size();
 
         final List<UUID> toRemove = new ArrayList<>();
+
+        final int subdivide = config.getSubdivide();
+        final double sqRadius = config.getRadius();
 
         // Iterate over a subdivision of the active magnets
         for (int index = divIndex; index < size; index += subdivide) {
@@ -264,5 +269,15 @@ public class MagnetCommandExecutor implements CommandExecutor {
 
         // Update subdivision to check next iteration
         divIndex = (divIndex + 1) % subdivide;
+    }
+
+
+
+
+    private static MagnetConfig loadConfig(final Plugin plugin) {
+        return (MagnetConfig) plugin.getConfig().get(
+                CONFIG_PATH,
+                MagnetConfig.getDefault(plugin, CONFIG_PATH)
+        );
     }
 }
