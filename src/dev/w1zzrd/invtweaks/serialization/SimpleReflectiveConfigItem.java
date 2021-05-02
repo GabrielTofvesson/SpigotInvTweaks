@@ -1,4 +1,4 @@
-package dev.w1zzrd.invtweaks.config;
+package dev.w1zzrd.invtweaks.serialization;
 
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 
@@ -6,9 +6,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class SimpleReflectiveConfigItem implements ConfigurationSerializable {
 
@@ -84,7 +82,7 @@ public class SimpleReflectiveConfigItem implements ConfigurationSerializable {
     private static Method locateParser(final Class<?> cls, final Class<?> prim) {
         for (final Method method : cls.getDeclaredMethods()) {
             final Class<?>[] params = method.getParameterTypes();
-            if (method.getName().startsWith("parse" + cls.getSimpleName()) &&
+            if ((method.getName().startsWith("parse" + cls.getSimpleName()) || method.getName().equals("fromString")) &&
                     Modifier.isStatic(method.getModifiers()) &&
                     method.getReturnType().equals(prim != null ? prim : cls) &&
                     params.length == 1 && params[0].equals(String.class))
