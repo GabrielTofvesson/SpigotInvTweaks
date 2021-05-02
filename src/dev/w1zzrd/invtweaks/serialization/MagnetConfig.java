@@ -1,4 +1,4 @@
-package dev.w1zzrd.invtweaks.config;
+package dev.w1zzrd.invtweaks.serialization;
 
 import org.bukkit.plugin.Plugin;
 
