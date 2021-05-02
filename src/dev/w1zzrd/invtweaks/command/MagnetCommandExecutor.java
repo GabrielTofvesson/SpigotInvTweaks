@@ -1,6 +1,8 @@
 package dev.w1zzrd.invtweaks.command;
 
-import dev.w1zzrd.invtweaks.config.MagnetConfig;
+import dev.w1zzrd.invtweaks.DataStore;
+import dev.w1zzrd.invtweaks.serialization.MagnetConfig;
+import dev.w1zzrd.invtweaks.serialization.MagnetData;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -29,14 +31,10 @@ public class MagnetCommandExecutor implements CommandExecutor {
 
     private static final String CONFIG_PATH = "magnet";
 
-    /**
-     * List of players with magnet mode active
-     */
-    private final List<UUID> activeMagnets = new ArrayList<>();
-    private final List<UUID> activeMagnetsView = Collections.unmodifiableList(activeMagnets);
-
     private final Plugin plugin;
     private MagnetConfig config;
+    private final DataStore data;
+    private final MagnetData magnetData;
 
 
     private int divIndex = 0;
@@ -47,8 +45,10 @@ public class MagnetCommandExecutor implements CommandExecutor {
      * Initialize the magnet executor and manger
      * @param plugin Owner plugin for this executor
      */
-    public MagnetCommandExecutor(final Plugin plugin) {
+    public MagnetCommandExecutor(final Plugin plugin, final DataStore data) {
         this.plugin = plugin;
+        this.data = data;
+        this.magnetData = data.loadData("magnets", MagnetData::blank);
 
         // Don't call reloadConfig to ensure we don't leak `this` during construction (a bit pedantic)
         config = loadConfig(plugin);
@@ -89,19 +89,12 @@ public class MagnetCommandExecutor implements CommandExecutor {
      * @return True if, after this method call, the UUID is part of the list of active magnets, else false.
      */
     public boolean toggleMagnet(final UUID uuid) {
+        boolean result = false;
         try {
-            final int index = Collections.binarySearch(activeMagnets, uuid);
-
-            // See JavaDoc: Collections.binarySearch
-            if (index < 0) {
-                activeMagnets.add(-(index + 1), uuid);
-                return true;
-            } else {
-                activeMagnets.remove(index);
-                return false;
-            }
+             result = magnetData.toggleMagnet(uuid);
+             return result;
         } finally {
-            updateMagnetismTask();
+            updateMagnetismTask(result);
         }
     }
 
@@ -111,7 +104,7 @@ public class MagnetCommandExecutor implements CommandExecutor {
      * @return Unmodifiable list view of the active magnets
      */
     public List<UUID> getActiveMagnets() {
-        return activeMagnetsView;
+        return magnetData.getActiveMagnetsView();
     }
 
     /**
@@ -130,14 +123,9 @@ public class MagnetCommandExecutor implements CommandExecutor {
      */
     public boolean removeMagnet(final UUID uuid) {
         try {
-            final int index = Collections.binarySearch(activeMagnets, uuid);
-            if (index < 0)
-                return false;
-
-            activeMagnets.remove(index);
-            return true;
+            return magnetData.removeMagnet(uuid);
         } finally {
-            updateMagnetismTask();
+            updateMagnetismTask(true);
         }
     }
 
@@ -148,18 +136,9 @@ public class MagnetCommandExecutor implements CommandExecutor {
      */
     public boolean removeMagnets(final Iterable<UUID> uuids) {
         try {
-            boolean changed = false;
-            for(final UUID uuid : uuids) {
-                final int index = Collections.binarySearch(activeMagnets, uuid);
-                if (index < 0)
-                    continue;
-
-                activeMagnets.remove(index);
-                changed = true;
-            }
-            return changed;
+            return magnetData.removeMagnets(uuids);
         } finally {
-            updateMagnetismTask();
+            updateMagnetismTask(true);
         }
     }
 
@@ -179,16 +158,9 @@ public class MagnetCommandExecutor implements CommandExecutor {
      */
     public boolean addMagnet(final UUID uuid) {
         try {
-            final int index = Collections.binarySearch(activeMagnets, uuid);
-
-            if (index < 0) {
-                activeMagnets.add(-(index + 1), uuid);
-                return true;
-            }
-
-            return false;
+            return magnetData.addMagnet(uuid);
         } finally {
-            updateMagnetismTask();
+            updateMagnetismTask(false);
         }
     }
 
@@ -207,7 +179,7 @@ public class MagnetCommandExecutor implements CommandExecutor {
      * @return True if the given UUID is marked as a magnet
      */
     public boolean isMagnet(final UUID uuid) {
-        return Collections.binarySearch(activeMagnets, uuid) >= 0;
+        return magnetData.isMagnet(uuid);
     }
 
     /**
@@ -217,15 +189,14 @@ public class MagnetCommandExecutor implements CommandExecutor {
      * enabled. The refresh task is cancelled and state reset if there are no active magnet players, or the plugin is
      * disabled.
      */
-    private void updateMagnetismTask() {
-        if (refreshTask == null && activeMagnets.size() > 0 && plugin.isEnabled()) {
+    public void updateMagnetismTask(final boolean checkOnline) {
+        if (refreshTask == null && (!checkOnline || magnetData.onlineMagnets() > 0) && plugin.isEnabled()) {
             refreshTask = Bukkit.getScheduler().runTaskTimer(plugin, this::taskApplyMagnetism, 0, config.getInterval());
             logger.info(LOG_PLUGIN_NAME + " Activated magnetism check task");
         }
-        else if (refreshTask != null && (activeMagnets.size() == 0 || !plugin.isEnabled())) {
+        else if (refreshTask != null && ((checkOnline && magnetData.onlineMagnets() == 0) || !plugin.isEnabled())) {
             Bukkit.getScheduler().cancelTask(refreshTask.getTaskId());
             refreshTask = null;
-            activeMagnets.clear();
             divIndex = 0;
             logger.info(LOG_PLUGIN_NAME + " De-activated magnetism check task");
         }
@@ -233,13 +204,12 @@ public class MagnetCommandExecutor implements CommandExecutor {
 
     /**
      * Task for teleporting items to magnet players
-     *
-     * @see MagnetCommandExecutor#updateMagnetismTask()
      */
     private void taskApplyMagnetism() {
-        final int size = activeMagnets.size();
-
         final List<UUID> toRemove = new ArrayList<>();
+
+        final List<UUID> activeMagnets = magnetData.getOnlineMagnetsView();
+        final int size = activeMagnets.size();
 
         final int subdivide = config.getSubdivide();
         final double sqRadius = config.getRadius();
@@ -273,6 +243,9 @@ public class MagnetCommandExecutor implements CommandExecutor {
 
 
 
+    public void onDisable() {
+        data.storeData("magnets", magnetData);
+    }
 
     private static MagnetConfig loadConfig(final Plugin plugin) {
         return (MagnetConfig) plugin.getConfig().get(
