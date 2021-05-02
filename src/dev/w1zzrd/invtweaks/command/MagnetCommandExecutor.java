@@ -241,7 +241,15 @@ public class MagnetCommandExecutor implements CommandExecutor {
         divIndex = (divIndex + 1) % subdivide;
     }
 
+    public void onMagnetLogout(final UUID magnet) {
+        if (magnetData.removeLogoutOnline(magnet))
+            updateMagnetismTask(true);
+    }
 
+    public void onMagnetLogin(final UUID magnet) {
+        if (magnetData.addLoginOnline(magnet))
+            updateMagnetismTask(false);
+    }
 
     public void onDisable() {
         data.storeData("magnets", magnetData);
