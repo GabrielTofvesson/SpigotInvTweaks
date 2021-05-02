@@ -15,7 +15,6 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitTask;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.logging.Logger;
@@ -241,20 +240,36 @@ public class MagnetCommandExecutor implements CommandExecutor {
         divIndex = (divIndex + 1) % subdivide;
     }
 
+    /**
+     * Event handler for when a potential magnet player logs out
+     * @param magnet Player to check magnet state for
+     */
     public void onMagnetLogout(final UUID magnet) {
         if (magnetData.removeLogoutOnline(magnet))
             updateMagnetismTask(true);
     }
 
+    /**
+     * Event handler for when a potential magnet player logs in
+     * @param magnet Player to check magnet state for
+     */
     public void onMagnetLogin(final UUID magnet) {
         if (magnetData.addLoginOnline(magnet))
             updateMagnetismTask(false);
     }
 
+    /**
+     * Event handler for saving magnet data to persistent data store
+     */
     public void onDisable() {
         data.storeData("magnets", magnetData);
     }
 
+    /**
+     * Load magnet configuration data for given plugin
+     * @param plugin Plugin for which to load configuration for
+     * @return Configuration from persistent data if available, else default configuration values
+     */
     private static MagnetConfig loadConfig(final Plugin plugin) {
         return (MagnetConfig) plugin.getConfig().get(
                 CONFIG_PATH,

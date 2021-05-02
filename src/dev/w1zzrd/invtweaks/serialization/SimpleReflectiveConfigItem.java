@@ -8,8 +8,15 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.*;
 
+/**
+ * Configuration serializable type for automatically serializing/deserializing fields
+ */
 public class SimpleReflectiveConfigItem implements ConfigurationSerializable {
 
+    /**
+     * Required constructor for deserializing data
+     * @param mappings Data to deserialize
+     */
     public SimpleReflectiveConfigItem(final Map<String, Object> mappings) {
         deserializeMapped(mappings);
     }
@@ -30,12 +37,17 @@ public class SimpleReflectiveConfigItem implements ConfigurationSerializable {
         return values;
     }
 
+    /**
+     * Deserialize mapped data by name
+     * @param mappings Data to deserialize
+     */
     private void deserializeMapped(final Map<String, Object> mappings) {
         for (final Field field : getClass().getDeclaredFields()) {
             if (Modifier.isTransient(field.getModifiers()) || Modifier.isStatic(field.getModifiers()))
                 continue;
 
             try {
+                // Try to find mappings by field name
                 if (mappings.containsKey(field.getName()))
                     parse(mappings.get(field.getName()), field, this);
             } catch (IllegalAccessException | InvocationTargetException e) {
@@ -45,6 +57,14 @@ public class SimpleReflectiveConfigItem implements ConfigurationSerializable {
         }
     }
 
+    /**
+     * Attempt to parse a value such that it can be stored in the given field
+     * @param value Value to parse
+     * @param field Field to store value in
+     * @param instance Configuration object for which to parse the vaue
+     * @throws IllegalAccessException Should never be thrown
+     * @throws InvocationTargetException Should never be thrown
+     */
     private static void parse(final Object value, final Field field, final Object instance) throws IllegalAccessException, InvocationTargetException {
         field.setAccessible(true);
 
@@ -67,6 +87,11 @@ public class SimpleReflectiveConfigItem implements ConfigurationSerializable {
         throw new IllegalArgumentException(String.format("No defined parser for value \"%s\"", value));
     }
 
+    /**
+     * Converter for boxed primitives
+     * @param cls Primitive type
+     * @return Boxed type for primitive type, else the given type
+     */
     private static Class<?> getBoxedType(final Class<?> cls) {
         if (cls == int.class) return Integer.class;
         else if (cls == double.class) return Double.class;
@@ -79,6 +104,12 @@ public class SimpleReflectiveConfigItem implements ConfigurationSerializable {
         else return cls;
     }
 
+    /**
+     * Attempt to find a parser method for the given type
+     * @param cls Type to find parser for
+     * @param prim Primitive type find parser for (if applicable)
+     * @return Static method which accepts a {@link String} argument and returns the desired type
+     */
     private static Method locateParser(final Class<?> cls, final Class<?> prim) {
         for (final Method method : cls.getDeclaredMethods()) {
             final Class<?>[] params = method.getParameterTypes();

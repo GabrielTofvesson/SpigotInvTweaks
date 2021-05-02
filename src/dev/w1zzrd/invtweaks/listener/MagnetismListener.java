@@ -8,10 +8,17 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerKickEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
+/**
+ * Event listener for enabling/disabling magnet task state
+ */
 public class MagnetismListener implements Listener {
 
     private final MagnetCommandExecutor magnetCommandExecutor;
 
+    /**
+     * Create a new listener for the given executor
+     * @param magnetCommandExecutor Command handler to track events for
+     */
     public MagnetismListener(final MagnetCommandExecutor magnetCommandExecutor) {
         this.magnetCommandExecutor = magnetCommandExecutor;
     }
@@ -31,11 +38,11 @@ public class MagnetismListener implements Listener {
         onLeave(event.getPlayer());
     }
 
+    /**
+     * Unified handler for when a player disconnects from the server
+     * @param player Player that has disconnected
+     */
     private void onLeave(final Player player) {
         magnetCommandExecutor.onMagnetLogout(player.getUniqueId());
-    }
-
-    private boolean shouldNotifyExecutor(final Player player) {
-        return magnetCommandExecutor.isMagnet(player);
     }
 }

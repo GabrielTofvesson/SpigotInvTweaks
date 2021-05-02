@@ -63,6 +63,10 @@ public final class InvTweaksPlugin extends JavaPlugin {
             magnetCommandExecutor.reloadConfig();
     }
 
+    /**
+     * Get a reference to the persistent data store object for this plugin
+     * @return An instance of {@link DataStore} for this plugin
+     */
     public DataStore getPersistentData() {
         return data;
     }
@@ -108,18 +112,31 @@ public final class InvTweaksPlugin extends JavaPlugin {
         HandlerList.unregisterAll(this);
     }
 
+    /**
+     * Register type serializers/deserializers for configurations and YAML files
+     *
+     * @see #unregisterSerializers()
+     */
     private void registerSerializers() {
         ConfigurationSerialization.registerClass(MagnetConfig.class);
         ConfigurationSerialization.registerClass(MagnetData.class);
         ConfigurationSerialization.registerClass(UUIDList.class);
     }
 
+    /**
+     * Unregister type serializers/deserializers for configurations and YAML files
+     *
+     * @see #registerSerializers()
+     */
     private void unregisterSerializers() {
         ConfigurationSerialization.unregisterClass(MagnetConfig.class);
         ConfigurationSerialization.unregisterClass(MagnetData.class);
         ConfigurationSerialization.unregisterClass(UUIDList.class);
     }
 
+    /**
+     * Initialize persistent data storage sources and handlers
+     */
     private void enablePersistentData() {
         registerSerializers();
 
@@ -131,6 +148,9 @@ public final class InvTweaksPlugin extends JavaPlugin {
         data = new DataStore(PERSISTENT_DATA_NAME, this);
     }
 
+    /**
+     * De-activate and finalize persistent data storage sources and handlers
+     */
     private void disablePersistentData() {
         data.saveData();
         data = null;

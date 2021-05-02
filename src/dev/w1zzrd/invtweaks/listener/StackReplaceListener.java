@@ -19,6 +19,9 @@ import static dev.w1zzrd.invtweaks.InvTweaksPlugin.LOG_PLUGIN_NAME;
  */
 public class StackReplaceListener implements Listener {
 
+    /**
+     * Max index for main player inventory
+     */
     private static final int MAX_MAIN_INV = 35;
 
 
@@ -48,6 +51,15 @@ public class StackReplaceListener implements Listener {
             logger.fine(LOG_PLUGIN_NAME + " Moved tool into empty hand for player " + event.getPlayer().getName());
     }
 
+    /**
+     * Attempt to find and move a similar stack in the inventory to the one given, using the supplied comparison
+     * function
+     * @param usedItemStack Stack to find a replacement for
+     * @param target Inventory slot to move stack to
+     * @param inventory Inventory to search for similar items in
+     * @param compareFunc Function to use when determining similarity between stacks
+     * @return True if a similar stack was found and moved, else false
+     */
     private boolean findAndMoveSimilarStack(
             final ItemStack usedItemStack,
             final EquipmentSlot target,
