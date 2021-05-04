@@ -9,6 +9,8 @@
  * /magnet  Toggle magnetism for the sender. When magnetism is enabled, all
  *          items within a 16x16x16 cube around the player that can be picked
  *          up are teleported to the player relatively frequently
+ * /search  Find a given item type in any nearby chest and open the chest for
+ *          the player
  * </pre>
  * <h3>Features</h3>
  * <ul>
