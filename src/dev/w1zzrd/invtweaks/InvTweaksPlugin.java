@@ -8,6 +8,7 @@ import dev.w1zzrd.invtweaks.serialization.MagnetConfig;
 import dev.w1zzrd.invtweaks.listener.SortListener;
 import dev.w1zzrd.invtweaks.listener.StackReplaceListener;
 import dev.w1zzrd.invtweaks.serialization.MagnetData;
+import dev.w1zzrd.invtweaks.serialization.SearchConfig;
 import dev.w1zzrd.invtweaks.serialization.UUIDList;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.serialization.ConfigurationSerialization;
@@ -63,6 +64,9 @@ public final class InvTweaksPlugin extends JavaPlugin {
 
         if (magnetCommandExecutor != null)
             magnetCommandExecutor.reloadConfig();
+
+        if (searchCommandExecutor != null)
+            searchCommandExecutor.reloadConfig();
     }
 
     /**
@@ -78,8 +82,8 @@ public final class InvTweaksPlugin extends JavaPlugin {
      */
     private void initCommands() {
         sortCommandExecutor = new SortCommandExecutor();
-        magnetCommandExecutor = new MagnetCommandExecutor(this, getPersistentData());
-        searchCommandExecutor = new SearchCommandExecutor();
+        magnetCommandExecutor = new MagnetCommandExecutor(this, "magnet", getPersistentData());
+        searchCommandExecutor = new SearchCommandExecutor(this, "search");
 
         // TODO: Bind command by annotation
         Objects.requireNonNull(getCommand("sort")).setExecutor(sortCommandExecutor);
@@ -126,6 +130,7 @@ public final class InvTweaksPlugin extends JavaPlugin {
         ConfigurationSerialization.registerClass(MagnetConfig.class);
         ConfigurationSerialization.registerClass(MagnetData.class);
         ConfigurationSerialization.registerClass(UUIDList.class);
+        ConfigurationSerialization.registerClass(SearchConfig.class);
     }
 
     /**
@@ -137,6 +142,7 @@ public final class InvTweaksPlugin extends JavaPlugin {
         ConfigurationSerialization.unregisterClass(MagnetConfig.class);
         ConfigurationSerialization.unregisterClass(MagnetData.class);
         ConfigurationSerialization.unregisterClass(UUIDList.class);
+        ConfigurationSerialization.unregisterClass(SearchConfig.class);
     }
 
     /**
@@ -160,7 +166,7 @@ public final class InvTweaksPlugin extends JavaPlugin {
         data.saveData();
         data = null;
 
-        saveConfig();
+        //saveConfig();
 
         unregisterSerializers();
     }
