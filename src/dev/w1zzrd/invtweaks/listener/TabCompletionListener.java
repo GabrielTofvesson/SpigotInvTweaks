@@ -10,7 +10,9 @@ import org.bukkit.event.server.TabCompleteEvent;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Listener for providing tab completions for all commands in this plugin
@@ -21,6 +23,26 @@ public class TabCompletionListener implements Listener {
             .map(Material::getKey)
             .sorted(Comparator.comparing(NamespacedKey::toString))
             .collect(Collectors.toUnmodifiableList());
+
+    private static final boolean multiNS;
+
+
+    static {
+        String ns = null;
+        for (final Material mat  : Material.values()) {
+            if (ns == null) ns = mat.getKey().getNamespace();
+            else if (!ns.equals(mat.getKey().getNamespace())) {
+                ns = null;
+                break;
+            }
+        }
+
+        multiNS = ns == null;
+
+    }
+
+
+
 
     @EventHandler
     public void onTabCompleteEvent(final TabCompleteEvent event) {
@@ -35,10 +57,10 @@ public class TabCompletionListener implements Listener {
                     completions.clear();
                     event.setCancelled(true);
                 } else if (split.length == 2) {
-                    completions.addAll(materialTypes.stream().map(NamespacedKey::toString).filter(it -> it.contains(split[1])).collect(Collectors.toList()));
+                    completions.addAll(getMatching(split[1]).collect(Collectors.toList()));
                 } else {
                     completions.clear();
-                    completions.addAll(materialTypes.stream().map(NamespacedKey::toString).collect(Collectors.toList()));
+                    completions.addAll(materialTypes.stream().map(it -> multiNS ? it.toString() : it.getKey()).collect(Collectors.toList()));
                 }
             } else if (buffer.startsWith("/magnet ")) {
                 completions.clear();
@@ -46,5 +68,33 @@ public class TabCompletionListener implements Listener {
                 completions.clear();
             }
         }
+    }
+
+
+    public static Stream<String> getMatching(final String arg) {
+        final String[] key = arg.split(":", 2);
+
+        return Arrays.stream(Material.values())
+                .filter(it -> (key.length == 1 || it.getKey().getNamespace().equals(key[0])) &&
+                        it.getKey().getKey().contains(key[key.length - 1]))
+                .map(Material::getKey)
+                .map(it -> key.length == 1 ? it.getKey() : it.toString());
+    }
+
+    public static Stream<Material> getAllMaterialsMatching(final String arg) {
+        final String[] key = arg.split(":", 2);
+
+        return Arrays.stream(Material.values())
+                .filter(it -> (key.length == 1 || it.getKey().getNamespace().equals(key[0])) &&
+                        it.getKey().getKey().contains(key[key.length - 1]));
+    }
+
+    public static Material getMaterialMatching(final String arg) {
+        final List<Material> mats = getAllMaterialsMatching(arg).collect(Collectors.toList());
+
+        if (mats.size() != 1)
+            return null;
+
+        return mats.get(0);
     }
 }
