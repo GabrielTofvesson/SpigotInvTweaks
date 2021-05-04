@@ -2,10 +2,7 @@ package dev.w1zzrd.invtweaks.command;
 
 import dev.w1zzrd.invtweaks.InvTweaksPlugin;
 import dev.w1zzrd.invtweaks.serialization.SearchConfig;
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.block.*;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -16,10 +13,7 @@ import org.bukkit.plugin.Plugin;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.logging.Logger;
 
 import static dev.w1zzrd.invtweaks.command.CommandUtils.assertTrue;
@@ -46,13 +40,16 @@ public class SearchCommandExecutor extends ConfigurableCommandExecutor<SearchCon
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        final Material target;
+        final NamespacedKey target;
         if (assertTrue(sender instanceof Player, ERR_NOT_PLAYER, sender) ||
                 assertTrue(args.length == 1, ERR_NO_ARG, sender) ||
-                assertTrue((target = Material.getMaterial(args[0])) != null, String.format(ERR_UNKNOWN, args[0]), sender)
+                assertTrue((target = NamespacedKey.fromString(args[0])) != null, String.format(ERR_UNKNOWN, args[0]), sender)
         ) return false;
 
         assert target != null;
+        final Material targetMaterial = Arrays.stream(Material.values()).filter(it -> it.getKey().toString().equals(args[0])).findFirst().orElse(null);
+
+        assert targetMaterial != null;
         assert sender instanceof Player;
         final Player player = (Player) sender;
 
@@ -90,11 +87,11 @@ public class SearchCommandExecutor extends ConfigurableCommandExecutor<SearchCon
                     final InventoryHolder left = Objects.requireNonNull(((DoubleChest) holder).getLeftSide());
                     final InventoryHolder right = Objects.requireNonNull(((DoubleChest) holder).getRightSide());
 
-                    if (left.getInventory().contains(target) || right.getInventory().contains(target)) {
+                    if (left.getInventory().contains(targetMaterial) || right.getInventory().contains(targetMaterial)) {
                         result = holder;
                         break FIND_RESULT;
                     }
-                } else if (holder.getInventory().contains(target)) {
+                } else if (holder.getInventory().contains(targetMaterial)) {
                     result = holder;
                     break FIND_RESULT;
                 }
