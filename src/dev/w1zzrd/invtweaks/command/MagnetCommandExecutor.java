@@ -48,7 +48,7 @@ public class MagnetCommandExecutor extends ConfigurableCommandExecutor<MagnetCon
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player))
-            return false;
+            return true;
 
         final boolean isMagnetActive = toggleMagnet((Player) sender);
 

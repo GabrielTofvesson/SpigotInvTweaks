@@ -20,6 +20,7 @@ import java.util.logging.Logger;
 
 import static dev.w1zzrd.invtweaks.InvTweaksPlugin.LOG_PLUGIN_NAME;
 import static org.bukkit.Material.*;
+import static dev.w1zzrd.invtweaks.command.CommandUtils.*;
 
 /**
  * Handler for executions of /sort command
@@ -32,12 +33,10 @@ public class SortCommandExecutor implements CommandExecutor {
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         // Since we rely on targeting an inventory either by what we're looking at or by whom it was called,
         // there is an implicit dependency on that the command is called by (at the very least) an entity
-        if (!(sender instanceof Player)) {
-            logger.info(LOG_PLUGIN_NAME + " Sort command triggered by non-player");
-            sender.sendMessage("Command must be run by a player");
-            return false;
-        }
+        if (assertTrue(sender instanceof Player, "Command must be run by a player", sender))
+            return true;
 
+        assert sender instanceof Player;
         final Player player = (Player) sender;
 
         logger.fine(LOG_PLUGIN_NAME + " Sort triggered by player " + player.getName());

@@ -1,6 +1,7 @@
 package dev.w1zzrd.invtweaks.command;
 
 import dev.w1zzrd.invtweaks.InvTweaksPlugin;
+import dev.w1zzrd.invtweaks.listener.TabCompletionListener;
 import dev.w1zzrd.invtweaks.serialization.SearchConfig;
 import org.bukkit.*;
 import org.bukkit.block.*;
@@ -17,6 +18,7 @@ import java.util.*;
 import java.util.logging.Logger;
 
 import static dev.w1zzrd.invtweaks.command.CommandUtils.assertTrue;
+import static dev.w1zzrd.invtweaks.listener.TabCompletionListener.*;
 
 /**
  * Handler for executions of /search command
@@ -40,14 +42,11 @@ public class SearchCommandExecutor extends ConfigurableCommandExecutor<SearchCon
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        final NamespacedKey target;
+        final Material targetMaterial;
         if (assertTrue(sender instanceof Player, ERR_NOT_PLAYER, sender) ||
                 assertTrue(args.length == 1, ERR_NO_ARG, sender) ||
-                assertTrue((target = NamespacedKey.fromString(args[0])) != null, String.format(ERR_UNKNOWN, args[0]), sender)
-        ) return false;
-
-        assert target != null;
-        final Material targetMaterial = Arrays.stream(Material.values()).filter(it -> it.getKey().toString().equals(args[0])).findFirst().orElse(null);
+                assertTrue((targetMaterial = getMaterialMatching(args[0])) != null, String.format(ERR_UNKNOWN, args[0]), sender)
+        ) return true;
 
         assert targetMaterial != null;
         assert sender instanceof Player;
@@ -64,7 +63,7 @@ public class SearchCommandExecutor extends ConfigurableCommandExecutor<SearchCon
 
         // Ensure we found inventory-holding blocks
         if (assertTrue(matches.size() != 0, ERR_NO_INVENTORIES, sender))
-            return false;
+            return true;
 
         final InventoryHolder result;
 
@@ -97,7 +96,7 @@ public class SearchCommandExecutor extends ConfigurableCommandExecutor<SearchCon
                 }
             }
             assertTrue(false, "Could not find inventory with target item/block", sender);
-            return false;
+            return true;
         }
 
         if (result instanceof DoubleChest) {
@@ -174,5 +173,10 @@ public class SearchCommandExecutor extends ConfigurableCommandExecutor<SearchCon
                 }
 
         return matches;
+    }
+
+    private static Material materialFromKey(final NamespacedKey key) {
+        final String stringKey = key.toString();
+        return Arrays.stream(Material.values()).filter(it -> it.getKey().toString().equals(stringKey)).findFirst().orElse(null);
     }
 }
