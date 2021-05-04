@@ -3,3 +3,8 @@ magnet:
   radius: 8.0
   interval: 5
   subdivide: 1
+search:
+  ==: dev.w1zzrd.invtweaks.serialization.SearchConfig
+  searchRadiusX: 8
+  searchRadiusY: 8
+  searchRadiusZ: 8
