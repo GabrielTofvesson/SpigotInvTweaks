@@ -94,15 +94,10 @@ public class SearchCommandExecutor implements CommandExecutor {
             return false;
         }
 
-        if (result instanceof DoubleChest) {
-            final DoubleChest dChest = (DoubleChest) result;
-
-            //final InventoryView view = player.openInventory(dChest.getInventory());
-            System.out.println("Opened inventory");
-            player.openInventory(new SearchInventoryView(dChest, player, ((Chest)dChest.getLeftSide()).getCustomName() == null ? "Large Chest" : Objects.requireNonNull(((Container) result).getCustomName())));
-        } else {
-            player.openInventory(result.getInventory());
-        }
+        // Issue with double-chest: lid stays open after inventory is closed
+        // Solution requires reflection and probably breaks backward compatibility
+        // TODO: Replace with EntityPlayer.openContainer (?)
+        player.openInventory(result.getInventory());
 
         return true;
     }
