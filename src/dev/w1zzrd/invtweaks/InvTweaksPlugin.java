@@ -1,6 +1,7 @@
 package dev.w1zzrd.invtweaks;
 
 import dev.w1zzrd.invtweaks.command.MagnetCommandExecutor;
+import dev.w1zzrd.invtweaks.command.SearchCommandExecutor;
 import dev.w1zzrd.invtweaks.command.SortCommandExecutor;
 import dev.w1zzrd.invtweaks.listener.MagnetismListener;
 import dev.w1zzrd.invtweaks.serialization.MagnetConfig;
@@ -33,6 +34,7 @@ public final class InvTweaksPlugin extends JavaPlugin {
     // Command executor references in case I need them or something idk
     private SortCommandExecutor sortCommandExecutor;
     private MagnetCommandExecutor magnetCommandExecutor;
+    private SearchCommandExecutor searchCommandExecutor;
     private DataStore data;
 
     @Override
@@ -77,10 +79,12 @@ public final class InvTweaksPlugin extends JavaPlugin {
     private void initCommands() {
         sortCommandExecutor = new SortCommandExecutor();
         magnetCommandExecutor = new MagnetCommandExecutor(this, getPersistentData());
+        searchCommandExecutor = new SearchCommandExecutor();
 
         // TODO: Bind command by annotation
         Objects.requireNonNull(getCommand("sort")).setExecutor(sortCommandExecutor);
         Objects.requireNonNull(getCommand("magnet")).setExecutor(magnetCommandExecutor);
+        Objects.requireNonNull(getCommand("search")).setExecutor(searchCommandExecutor);
     }
 
     /**
@@ -102,6 +106,7 @@ public final class InvTweaksPlugin extends JavaPlugin {
 
         sortCommandExecutor = null;
         magnetCommandExecutor = null;
+        searchCommandExecutor = null;
     }
 
     /**

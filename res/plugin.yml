@@ -12,3 +12,7 @@ commands:
     description: Toggle item magnet mode for player
     usage: /<command>
     permission: invtweaks.magnet
+  search:
+    description: Search for a given item in all nearby inventories
+    usage: /<command> {item type}
+    permission: invtweaks.search
