@@ -24,17 +24,12 @@ import static dev.w1zzrd.invtweaks.InvTweaksPlugin.LOG_PLUGIN_NAME;
 /**
  * Handler for executions of /magnet command
  */
-public class MagnetCommandExecutor implements CommandExecutor {
+public class MagnetCommandExecutor extends ConfigurableCommandExecutor<MagnetConfig> {
 
     private static final Logger logger = Bukkit.getLogger();
 
-    private static final String CONFIG_PATH = "magnet";
-
-    private final Plugin plugin;
-    private MagnetConfig config;
     private final DataStore data;
     private final MagnetData magnetData;
-
 
     private int divIndex = 0;
 
@@ -44,20 +39,10 @@ public class MagnetCommandExecutor implements CommandExecutor {
      * Initialize the magnet executor and manger
      * @param plugin Owner plugin for this executor
      */
-    public MagnetCommandExecutor(final Plugin plugin, final DataStore data) {
-        this.plugin = plugin;
+    public MagnetCommandExecutor(final Plugin plugin, final String path, final DataStore data) {
+        super(plugin, path);
         this.data = data;
         this.magnetData = data.loadData("magnets", MagnetData::blank);
-
-        // Don't call reloadConfig to ensure we don't leak `this` during construction (a bit pedantic)
-        config = loadConfig(plugin);
-    }
-
-    /**
-     * Reload magnet command configuration
-     */
-    public void reloadConfig() {
-        config = loadConfig(plugin);
     }
 
     @Override
@@ -189,6 +174,9 @@ public class MagnetCommandExecutor implements CommandExecutor {
      * disabled.
      */
     public void updateMagnetismTask(final boolean checkOnline) {
+        final MagnetConfig config = getConfig();
+        final Plugin plugin = getPlugin();
+
         if (refreshTask == null && (!checkOnline || magnetData.onlineMagnets() > 0) && plugin.isEnabled()) {
             refreshTask = Bukkit.getScheduler().runTaskTimer(plugin, this::taskApplyMagnetism, 0, config.getInterval());
             logger.info(LOG_PLUGIN_NAME + " Activated magnetism check task");
@@ -209,6 +197,8 @@ public class MagnetCommandExecutor implements CommandExecutor {
 
         final List<UUID> activeMagnets = magnetData.getOnlineMagnetsView();
         final int size = activeMagnets.size();
+
+        final MagnetConfig config = getConfig();
 
         final int subdivide = config.getSubdivide();
         final double sqRadius = config.getRadius();
@@ -263,17 +253,5 @@ public class MagnetCommandExecutor implements CommandExecutor {
      */
     public void onDisable() {
         data.storeData("magnets", magnetData);
-    }
-
-    /**
-     * Load magnet configuration data for given plugin
-     * @param plugin Plugin for which to load configuration for
-     * @return Configuration from persistent data if available, else default configuration values
-     */
-    private static MagnetConfig loadConfig(final Plugin plugin) {
-        return (MagnetConfig) plugin.getConfig().get(
-                CONFIG_PATH,
-                MagnetConfig.getDefault(plugin, CONFIG_PATH)
-        );
     }
 }
