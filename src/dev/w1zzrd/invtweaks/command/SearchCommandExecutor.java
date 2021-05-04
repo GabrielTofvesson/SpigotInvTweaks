@@ -1,20 +1,21 @@
 package dev.w1zzrd.invtweaks.command;
 
+import dev.w1zzrd.invtweaks.InvTweaksPlugin;
+import dev.w1zzrd.invtweaks.serialization.SearchConfig;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.*;
 import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
-import org.bukkit.event.inventory.InventoryType;
-import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
-import org.bukkit.inventory.InventoryView;
+import org.bukkit.plugin.Plugin;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -23,7 +24,10 @@ import java.util.logging.Logger;
 
 import static dev.w1zzrd.invtweaks.command.CommandUtils.assertTrue;
 
-public class SearchCommandExecutor implements CommandExecutor {
+/**
+ * Handler for executions of /search command
+ */
+public class SearchCommandExecutor extends ConfigurableCommandExecutor<SearchConfig> {
 
     private static final Logger logger = Bukkit.getLogger();
 
@@ -34,7 +38,10 @@ public class SearchCommandExecutor implements CommandExecutor {
         ERR_UNKNOWN = "Unknown item/block name \"%s\"",
         ERR_NO_INVENTORIES = "No inventories could be found";
 
-    private static final int RADIUS_X = 8, RADIUS_Y = 8, RADIUS_Z = 8;
+
+    public SearchCommandExecutor(final Plugin plugin, final String path) {
+        super(plugin, path);
+    }
 
 
     @Override
@@ -49,10 +56,12 @@ public class SearchCommandExecutor implements CommandExecutor {
         assert sender instanceof Player;
         final Player player = (Player) sender;
 
+        final SearchConfig config = getConfig();
+
         final List<BlockState> matches = searchBlocks(
                 player.getLocation(),
                 player.getWorld(),
-                RADIUS_X, RADIUS_Y, RADIUS_Z,
+                config.getSearchRadiusX(), config.getSearchRadiusY(), config.getSearchRadiusZ(),
                 Material.CHEST, Material.SHULKER_BOX
         );
 
@@ -71,7 +80,7 @@ public class SearchCommandExecutor implements CommandExecutor {
                 else if (check instanceof ShulkerBox)
                     holder = ((ShulkerBox) check).getInventory().getHolder();
                 else {
-                    logger.info("Found non-matching block");
+                    logger.info(InvTweaksPlugin.LOG_PLUGIN_NAME + " Found non-matching block");
                     continue;
                 }
 
@@ -94,15 +103,61 @@ public class SearchCommandExecutor implements CommandExecutor {
             return false;
         }
 
-        // Issue with double-chest: lid stays open after inventory is closed
-        // Solution requires reflection and probably breaks backward compatibility
-        // TODO: Replace with EntityPlayer.openContainer (?)
+        if (result instanceof DoubleChest) {
+            final DoubleChest dChest = (DoubleChest) result;
+
+            // Black magic to make chest lid animation behave for double chests
+            try {
+                final Field tileField = dChest.getInventory().getClass().getDeclaredField("tile");
+                tileField.setAccessible(true);
+
+                final Object tile = tileField.get(dChest.getInventory());
+
+                final Field tecField = tile.getClass().getDeclaredField("tileentitychest");
+                tecField.setAccessible(true);
+
+                final Field entityField = player.getClass().getSuperclass().getSuperclass().getSuperclass().getDeclaredField("entity");
+                entityField.setAccessible(true);
+
+                final Object entity = entityField.get(player);
+
+                final Method openContainerMethod = entity.getClass().getDeclaredMethod("openContainer", tile.getClass().getInterfaces()[0]);
+                openContainerMethod.setAccessible(true);
+
+                openContainerMethod.invoke(entity, tile);
+
+                final Field activeContainerField = entity.getClass().getSuperclass().getDeclaredField("activeContainer");
+                activeContainerField.setAccessible(true);
+
+                final Object activeContainer = activeContainerField.get(entity);
+
+                final Field checkReachableField = activeContainer.getClass().getSuperclass().getDeclaredField("checkReachable");
+                checkReachableField.setAccessible(true);
+
+                // Disable reach checks for container while it is open
+                checkReachableField.set(activeContainer, false);
+
+                return true;
+            } catch (NoSuchFieldException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
+                logger.fine(InvTweaksPlugin.LOG_PLUGIN_NAME + " Could not use internal openContainer method; chest lids may stay open");
+            }
+        }
+
+        // Default behaviour for non-double-chest inventories
+        // (plus fallback for double-chests on "unsupported" versions)
         player.openInventory(result.getInventory());
 
         return true;
     }
 
-    private List<BlockState> searchBlocks(final Location centre, final World world, final int rx, final int ry, final int rz, final Material... targets) {
+    private List<BlockState> searchBlocks(
+            final Location centre,
+            final World world,
+            final int rx,
+            final int ry,
+            final int rz,
+            final Material... targets
+    ) {
         if (targets.length == 0)
             return Collections.emptyList();
 
@@ -122,43 +177,5 @@ public class SearchCommandExecutor implements CommandExecutor {
                 }
 
         return matches;
-    }
-
-    public static class SearchInventoryView extends InventoryView {
-
-        private final DoubleChest dChest;
-        private final Player player;
-        private final String title;
-
-        SearchInventoryView(final DoubleChest dChest, final Player player, final String title) {
-            this.dChest = dChest;
-            this.player = player;
-            this.title = title;
-        }
-
-        @Override
-        public Inventory getTopInventory() {
-            return dChest.getInventory();
-        }
-
-        @Override
-        public Inventory getBottomInventory() {
-            return player.getInventory();
-        }
-
-        @Override
-        public HumanEntity getPlayer() {
-            return player;
-        }
-
-        @Override
-        public InventoryType getType() {
-            return InventoryType.CHEST;
-        }
-
-        @Override
-        public String getTitle() {
-            return title;
-        }
     }
 }
