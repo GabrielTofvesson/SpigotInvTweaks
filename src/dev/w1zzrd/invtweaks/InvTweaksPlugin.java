@@ -4,6 +4,7 @@ import dev.w1zzrd.invtweaks.command.MagnetCommandExecutor;
 import dev.w1zzrd.invtweaks.command.SearchCommandExecutor;
 import dev.w1zzrd.invtweaks.command.SortCommandExecutor;
 import dev.w1zzrd.invtweaks.listener.MagnetismListener;
+import dev.w1zzrd.invtweaks.listener.TabCompletionListener;
 import dev.w1zzrd.invtweaks.serialization.MagnetConfig;
 import dev.w1zzrd.invtweaks.listener.SortListener;
 import dev.w1zzrd.invtweaks.listener.StackReplaceListener;
@@ -100,6 +101,7 @@ public final class InvTweaksPlugin extends JavaPlugin {
         pluginManager.registerEvents(new StackReplaceListener(), this);
         pluginManager.registerEvents(new SortListener(), this);
         pluginManager.registerEvents(new MagnetismListener(magnetCommandExecutor), this);
+        pluginManager.registerEvents(new TabCompletionListener(), this);
     }
 
     /**
