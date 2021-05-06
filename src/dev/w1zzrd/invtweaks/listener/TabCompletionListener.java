@@ -10,7 +10,6 @@ import org.bukkit.event.server.TabCompleteEvent;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -24,6 +23,9 @@ public class TabCompletionListener implements Listener {
             .sorted(Comparator.comparing(NamespacedKey::toString))
             .collect(Collectors.toUnmodifiableList());
 
+    /**
+     * Whether or not there are namespaces other than the default "minecraft"
+     */
     private static final boolean multiNS;
 
 
@@ -71,6 +73,11 @@ public class TabCompletionListener implements Listener {
     }
 
 
+    /**
+     * Get all material namespace names which fuzzy-match the given string
+     * @param arg String to match to materials
+     * @return Stream of namespace strings associated with matched materials
+     */
     public static Stream<String> getMatching(final String arg) {
         final String[] key = arg.split(":", 2);
 
@@ -81,6 +88,11 @@ public class TabCompletionListener implements Listener {
                 .map(it -> key.length == 1 ? it.getKey() : it.toString());
     }
 
+    /**
+     * Get all materials which fuzzy-match the given string
+     * @param arg String to match to materials
+     * @return Stream of matched materials
+     */
     public static Stream<Material> getAllMaterialsMatching(final String arg) {
         final String[] key = arg.split(":", 2);
 
@@ -89,6 +101,11 @@ public class TabCompletionListener implements Listener {
                         it.getKey().getKey().contains(key[key.length - 1]));
     }
 
+    /**
+     * Find a {@link Material} which is uniquely identifiable by the given string
+     * @param arg Part of namespaced key which uniquely identifies the material
+     * @return The identified material, if any, else null
+     */
     public static Material getMaterialMatching(final String arg) {
         final List<Material> mats = getAllMaterialsMatching(arg).collect(Collectors.toList());
 
