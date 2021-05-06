@@ -109,11 +109,9 @@ public class TabCompletionListener implements Listener {
     public static Material getMaterialMatching(final String arg) {
         final List<Material> mats = getAllMaterialsMatching(arg).collect(Collectors.toList());
 
-        final Material exact = mats.stream()
+        return mats.stream()
                 .filter(it -> multiNS ? arg.equals(it.getKey().toString()) : arg.equals(it.getKey().getKey()))
-                .findFirst()
-                .orElse(null);
+                .findFirst().orElse(mats.size() == 1 ? mats.get(0) : null);
 
-        return exact != null ? exact : mats.size() == 1 ? mats.get(0) : null;
     }
 }
