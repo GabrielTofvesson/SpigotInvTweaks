@@ -36,8 +36,10 @@ jobs:
       - name: Compile
         run: |
           mkdir -p build
+          jar_url=$(curl https://hub.spigotmc.org/nexus/content/repositories/snapshots/org/spigotmc/spigot-api/1.16.5-R0.1-SNAPSHOT/ | grep "shaded.jar\"" | tail -1 | sed "s/.*href=\"\(.*\)\".*/\1/g")
+          curl $jar_url > spigot-shaded.jar
           find -name "*.java" > sources
-          javac -cp lib/spigot-api-1.16.5-R0.1-20210421.073640-53.jar:lib/spigot-api-1.16.5-R0.1-20210421.073640-53-shaded.jar @sources -d build
+          javac -cp spigot-shaded.jar @sources -d build
           cp res/* build
           rm sources
           cd build
