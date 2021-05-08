@@ -1,0 +1,53 @@
+# This is a basic workflow to help you get started with Actions
+
+name: CI
+
+# Controls when the action will run. 
+on:
+  # Triggers the workflow on push or pull request events but only for the master branch
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+    
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+      - name: Setup Java JDK
+      - uses: actions/setup-java@v2.0.0
+        with:
+          # The Java version to set up. Takes a whole or semver Java version. See examples of supported syntax in README file
+          java-version:  '15'
+          # Java distribution. See the list of supported distributions in README file
+          distribution: 'adopt'
+
+      # Runs a single command using the runners shell
+      - name: Compile
+        run: |
+          mkdir -p build
+          find -name "*.java" > sources
+          javac -cp lib/spigot-api-1.16.5-R0.1-20210421.073640-53.jar:lib/spigot-api-1.16.5-R0.1-20210421.073640-53-shaded.jar @sources -d build
+          cp res/* build
+          rm sources
+          cd build
+          jar cvf build.jar *
+        
+      - uses: "marvinpinto/action-automatic-releases@latest"
+        with:
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          automatic_release_tag: "latest"
+          prerelease: true
+          title: "CI Build"
+          files: |
+            build/build.jar
