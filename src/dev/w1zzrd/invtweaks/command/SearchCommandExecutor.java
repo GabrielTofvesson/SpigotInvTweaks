@@ -1,7 +1,6 @@
 package dev.w1zzrd.invtweaks.command;
 
 import dev.w1zzrd.invtweaks.InvTweaksPlugin;
-import dev.w1zzrd.invtweaks.listener.TabCompletionListener;
 import dev.w1zzrd.invtweaks.serialization.SearchConfig;
 import org.bukkit.*;
 import org.bukkit.block.*;
@@ -18,7 +17,7 @@ import java.util.*;
 import java.util.logging.Logger;
 
 import static dev.w1zzrd.invtweaks.command.CommandUtils.assertTrue;
-import static dev.w1zzrd.invtweaks.listener.TabCompletionListener.*;
+import static dev.w1zzrd.invtweaks.listener.TabCompletionListener.getMaterialMatching;
 
 /**
  * Handler for executions of /search command
@@ -99,8 +98,7 @@ public class SearchCommandExecutor extends ConfigurableCommandExecutor<SearchCon
             return true;
         }
 
-        if (result instanceof DoubleChest) {
-            final DoubleChest dChest = (DoubleChest) result;
+        if (result instanceof final DoubleChest dChest) {
 
             // Black magic to make chest lid animation behave for double chests
             try {
@@ -173,10 +171,5 @@ public class SearchCommandExecutor extends ConfigurableCommandExecutor<SearchCon
                 }
 
         return matches;
-    }
-
-    private static Material materialFromKey(final NamespacedKey key) {
-        final String stringKey = key.toString();
-        return Arrays.stream(Material.values()).filter(it -> it.getKey().toString().equals(stringKey)).findFirst().orElse(null);
     }
 }
