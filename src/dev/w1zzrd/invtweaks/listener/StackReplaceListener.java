@@ -2,9 +2,12 @@ package dev.w1zzrd.invtweaks.listener;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.entity.Player;
+import org.bukkit.entity.ThrowableProjectile;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.entity.ProjectileLaunchEvent;
 import org.bukkit.event.player.PlayerItemBreakEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
@@ -49,6 +52,26 @@ public class StackReplaceListener implements Listener {
 
         if (findAndMoveSimilarStack(used, slot, inv, CompareFunc.toolFunc()))
             logger.fine(LOG_PLUGIN_NAME + " Moved tool into empty hand for player " + event.getPlayer().getName());
+    }
+
+    @EventHandler
+    public void onPlayerThrowSnowballEvent(final ProjectileLaunchEvent event) {
+        if (event.getEntity() instanceof final ThrowableProjectile projectile &&
+                projectile.getShooter() instanceof final Player thrower) {
+
+            final PlayerInventory inventory = thrower.getInventory();
+            final ItemStack stack = projectile.getItem();
+
+            final EquipmentSlot slot;
+            if (inventory.getItemInMainHand().getType() == stack.getType())
+                slot = EquipmentSlot.HAND;
+            else if (inventory.getItemInOffHand().getType() == stack.getType())
+                slot = EquipmentSlot.OFF_HAND;
+            else return;
+
+            if (findAndMoveSimilarStack(stack, slot, inventory, CompareFunc.defaultFunc()))
+                logger.fine(LOG_PLUGIN_NAME + " Moved snowball into empty hand for player " + thrower.getName());
+        }
     }
 
     /**
