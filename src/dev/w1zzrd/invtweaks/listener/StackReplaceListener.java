@@ -56,9 +56,13 @@ public class StackReplaceListener implements Listener {
 
     @EventHandler
     public void onPlayerThrowSnowballEvent(final ProjectileLaunchEvent event) {
-        if (event.getEntity() instanceof final ThrowableProjectile projectile &&
-                projectile.getShooter() instanceof final Player thrower) {
+        if (event.getEntity() instanceof ThrowableProjectile &&
+                event.getEntity().getShooter() instanceof Player) {
 
+            final ThrowableProjectile projectile = (ThrowableProjectile) event.getEntity();
+            final Player thrower = (Player) event.getEntity().getShooter();
+
+            assert thrower != null;
             final PlayerInventory inventory = thrower.getInventory();
             final ItemStack stack = projectile.getItem();
 

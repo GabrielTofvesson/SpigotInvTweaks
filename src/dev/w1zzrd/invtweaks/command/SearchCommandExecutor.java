@@ -98,7 +98,8 @@ public class SearchCommandExecutor extends ConfigurableCommandExecutor<SearchCon
             return true;
         }
 
-        if (result instanceof final DoubleChest dChest) {
+        if (result instanceof DoubleChest) {
+            final DoubleChest dChest = (DoubleChest) result;
 
             // Black magic to make chest lid animation behave for double chests
             try {
