@@ -12,6 +12,7 @@ import org.bukkit.event.player.PlayerItemBreakEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.plugin.Plugin;
 
 import java.util.logging.Logger;
 
@@ -21,6 +22,12 @@ import static dev.w1zzrd.invtweaks.InvTweaksPlugin.LOG_PLUGIN_NAME;
  * Handler for events/interactions that should trigger stack replacements in a players inventory
  */
 public class StackReplaceListener implements Listener {
+
+    private final Plugin plugin;
+
+    public StackReplaceListener(final Plugin plugin) {
+        this.plugin = plugin;
+    }
 
     /**
      * Max index for main player inventory
@@ -73,9 +80,14 @@ public class StackReplaceListener implements Listener {
                 slot = EquipmentSlot.OFF_HAND;
             else return;
 
-            if (inventory.getItem(slot).getAmount() == 1 &&
-                    findAndMoveSimilarStack(stack, slot, inventory, CompareFunc.defaultFunc()))
-                logger.fine(LOG_PLUGIN_NAME + " Moved snowball into empty hand for player " + thrower.getName());
+            if (inventory.getItem(slot).getAmount() == 1)
+                Bukkit.getScheduler().runTaskLater(
+                        plugin,
+                        () -> {
+                            if (findAndMoveSimilarStack(stack, slot, inventory, CompareFunc.defaultFunc()))
+                                logger.fine(LOG_PLUGIN_NAME + " Moved snowball into empty hand for player " + thrower.getName());
+                        },
+                        1);
         }
     }
 
