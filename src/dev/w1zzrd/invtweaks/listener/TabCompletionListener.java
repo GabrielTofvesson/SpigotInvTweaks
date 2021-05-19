@@ -10,6 +10,7 @@ import org.bukkit.event.server.TabCompleteEvent;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -21,7 +22,7 @@ public class TabCompletionListener implements Listener {
     private static final List<NamespacedKey> materialTypes = Arrays.stream(Material.values())
             .map(Material::getKey)
             .sorted(Comparator.comparing(NamespacedKey::toString))
-            .collect(Collectors.toUnmodifiableList());
+            .toList();
 
     /**
      * Whether or not there are namespaces other than the default "minecraft"
@@ -40,7 +41,6 @@ public class TabCompletionListener implements Listener {
         }
 
         multiNS = ns == null;
-
     }
 
 
@@ -62,7 +62,7 @@ public class TabCompletionListener implements Listener {
                     completions.addAll(getMatching(split[1]).collect(Collectors.toList()));
                 } else {
                     completions.clear();
-                    completions.addAll(materialTypes.stream().map(it -> multiNS ? it.toString() : it.getKey()).collect(Collectors.toList()));
+                    completions.addAll(materialTypes.stream().map(TabCompletionListener::toUniqueNSString).collect(Collectors.toList()));
                 }
             } else if (buffer.startsWith("/magnet ")) {
                 completions.clear();
@@ -72,6 +72,9 @@ public class TabCompletionListener implements Listener {
         }
     }
 
+    public static String toUniqueNSString(final NamespacedKey key) {
+        return multiNS ? key.toString() : key.getKey();
+    }
 
     /**
      * Get all material namespace names which fuzzy-match the given string
