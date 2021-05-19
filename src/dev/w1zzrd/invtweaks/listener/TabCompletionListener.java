@@ -22,7 +22,7 @@ public class TabCompletionListener implements Listener {
     private static final List<NamespacedKey> materialTypes = Arrays.stream(Material.values())
             .map(Material::getKey)
             .sorted(Comparator.comparing(NamespacedKey::toString))
-            .toList();
+            .collect(Collectors.toList());
 
     /**
      * Whether or not there are namespaces other than the default "minecraft"
