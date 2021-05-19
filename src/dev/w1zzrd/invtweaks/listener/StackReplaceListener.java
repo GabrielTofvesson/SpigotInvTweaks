@@ -73,7 +73,8 @@ public class StackReplaceListener implements Listener {
                 slot = EquipmentSlot.OFF_HAND;
             else return;
 
-            if (findAndMoveSimilarStack(stack, slot, inventory, CompareFunc.defaultFunc()))
+            if (inventory.getItem(slot).getAmount() == 1 &&
+                    findAndMoveSimilarStack(stack, slot, inventory, CompareFunc.defaultFunc()))
                 logger.fine(LOG_PLUGIN_NAME + " Moved snowball into empty hand for player " + thrower.getName());
         }
     }
