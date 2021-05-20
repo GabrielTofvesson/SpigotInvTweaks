@@ -27,6 +27,7 @@ print_help() {
   echo "  -s [type]       -   Autorun server after deployment. Type is \"debug\" to start with remote debugging, else \"run\""
   echo "  -e              -   Accepts the EULA for the deployed server (user must accept it in a provided prompt)"
   echo "  -h              -   Show this help prompt"
+  echo -e "Example:\n  $0 -v 1.16 -p out/plugin.jar -s debug -e"
 }
 
 print_error() {
@@ -107,13 +108,8 @@ done
 
 if $SKIP
 then
-  if [ "$CUR" == "-s" ]
-  then
-    AUTORUN="run"
-  else
-    print_error "Malformed parameter $CUR"
-    exit
-  fi
+  print_error "Malformed parameter $CUR"
+  exit
 fi
 
 case "$AUTORUN" in
