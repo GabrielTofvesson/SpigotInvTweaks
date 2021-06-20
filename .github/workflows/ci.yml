@@ -36,7 +36,7 @@ jobs:
       - name: Compile
         run: |
           mkdir -p build
-          jar_url=$(curl https://hub.spigotmc.org/nexus/content/repositories/snapshots/org/spigotmc/spigot-api/1.16.5-R0.1-SNAPSHOT/ | grep "shaded.jar\"" | tail -1 | sed "s/.*href=\"\(.*\)\".*/\1/g")
+          jar_url=$(curl https://hub.spigotmc.org/nexus/content/repositories/snapshots/org/spigotmc/spigot-api/1.17-R0.1-SNAPSHOT/ | grep "shaded.jar\"" | tail -1 | sed "s/.*href=\"\(.*\)\".*/\1/g")
           curl $jar_url > spigot-shaded.jar
           find -name "*.java" > sources
           javac -cp spigot-shaded.jar @sources -d build
