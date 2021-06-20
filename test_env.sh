@@ -1,14 +1,18 @@
 #!/bin/bash
 
 MIN_JAVA_VERSION=15
-[ "$JAVA_PATH" == "" ] && JAVA_PATH=$(which java)
-[ "$PYTHON_PATH" == "" ] && PYTHON_PATH=$(which python3)
+[ -z "$JAVA_PATH" ] && JAVA_PATH=$(which java)
+[ -z "$PYTHON_PATH" ] && PYTHON_PATH=$(which python3)
+[ -z "$SHELL" ] && SHELL=/bin/bash
 
 SCRIPT_RUN_NAME="start.sh"
 SCRIPT_DEBUG_NAME="start_debug.sh"
 
+# JVM options graciously "borrowed" from the PaperMC Timings JVM Tuning page
+# https://aikar.co/2018/07/02/tuning-the-jvm-g1gc-garbage-collector-flags-for-minecraft/
+MC_AUTORUN_FLAGS="-XX:+UnlockExperimentalVMOptions -Xmx1G -Xms512M -XX:+UseG1GC -XX:+ParallelRefProcEnabled -XX:MaxGCPauseMillis=200 -XX:+DisableExplicitGC -XX:+AlwaysPreTouch -XX:G1NewSizePercent=30 -XX:G1MaxNewSizePercent=40 -XX:G1HeapRegionSize=8M -XX:G1ReservePercent=20 -XX:G1HeapWastePercent=5 -XX:G1MixedGCCountTarget=4 -XX:InitiatingHeapOccupancyPercent=15 -XX:G1MixedGCLiveThresholdPercent=90 -XX:G1RSetUpdatingPauseTimePercent=5 -XX:SurvivorRatio=32 -XX:+PerfDisableSharedMem -XX:MaxTenuringThreshold=1"
 MC_VERSION="1.16"
-ENV_DIR="$(pwd)/test_server"
+ENV_DIR="$(pwd)/server"
 PAPER_JAR_FILE="paper.jar"
 PLUGIN_PATH=""
 UPDATE_PAPER=true
@@ -103,6 +107,11 @@ do
     "-e")
       EULA=true
       ;;
+
+    *)
+      print_error "Unknown argument: $arg"
+      exit
+      ;;
   esac
 done
 
@@ -137,7 +146,7 @@ check_java_version() {
 }
 
 ensure_python3() {
-  if [ "$PYTHON_PATH" == "" ]
+  if [ -z "$PYTHON_PATH" ]
   then
     print_error "Could not locate Python3 which is required for automatic server deployment: please install it"
     return 1
@@ -182,19 +191,20 @@ then
   mkdir -p "$ENV_DIR/plugins" || (print_error "Could not create server directory at $ENV_DIR" && exit)
 fi
 
-if [ "$PLUGIN_PATH" != "" ]
+if [ -n "$PLUGIN_PATH" ]
 then
+  print_info "Copying plugin to server directory..."
   cp "$PLUGIN_PATH" "$ENV_DIR/plugins" || (print_error "Could not copy targeted plugin to test environment" && exit)
 fi
 
 cd "$ENV_DIR" || (print_error "Could not enter directory $ENV_DIR" && exit)
-(! [ -f "$PAPER_JAR_FILE" ] || $UPDATE_PAPER) && get_paper
+{ ! [ -f "$PAPER_JAR_FILE" ] || $UPDATE_PAPER; } && get_paper && { ! [ -f "$PAPER_JAR_FILE" ]; } && exit
 
 [ -f "$PAPER_JAR_FILE" ] || exit
 
 if ! [ -f "$SCRIPT_RUN_NAME" ]
 then
-  echo -e "#!/bin/bash\njava -jar \"$PAPER_JAR_FILE\" nogui" > "$SCRIPT_RUN_NAME"
+  echo -e "#!/bin/bash\njava $MC_AUTORUN_FLAGS -jar \"$PAPER_JAR_FILE\" nogui" > "$SCRIPT_RUN_NAME"
 fi
 
 if ! [ -f "$SCRIPT_DEBUG_NAME" ]
@@ -204,7 +214,11 @@ fi
 
 print_info "Test environment successfully prepared!"
 
-if $EULA
+# Disable case-sensitivity for conditional expressions
+shopt -s nocaseglob
+
+# No need to ask user to accept EULA if it is already accepted
+if $EULA && ! { [ -f "eula.txt" ] && [[ "$(cat eula.txt)" =~ eula=true ]]; }
 then
   print_info -n "Do you accept the terms of the Minecraft End User License Agreement? (https://account.mojang.com/documents/minecraft_eula) [y/N]: "
   read -r ACCEPTS
@@ -219,8 +233,11 @@ then
   esac
 fi
 
-if [ "$AUTORUN" != "" ]
+# Re-enable case-sensitivity, just in case
+shopt -u nocaseglob
+
+if [ -n "$AUTORUN" ]
 then
   print_info "Autorun was specified. Starting server..."
-  ./$AUTORUN
+  "$SHELL" "$AUTORUN"
 fi
