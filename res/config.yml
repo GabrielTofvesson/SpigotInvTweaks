@@ -8,3 +8,5 @@ search:
   searchRadiusX: 8
   searchRadiusY: 8
   searchRadiusZ: 8
+ghostClick: true
+capitator: true

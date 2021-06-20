@@ -51,8 +51,8 @@ public final class InvTweaksPlugin extends JavaPlugin {
     public void onEnable() {
         logger.fine(LOG_PLUGIN_NAME + " Plugin enabled");
 
-        initEnchantments();
         enablePersistentData();
+        initEnchantments();
         initCommands();
         initEvents();
     }
@@ -63,8 +63,8 @@ public final class InvTweaksPlugin extends JavaPlugin {
 
         disableEvents();
         disableCommands();
-        disablePersistentData();
         disableEnchantments();
+        disablePersistentData();
     }
 
     @Override
@@ -89,8 +89,12 @@ public final class InvTweaksPlugin extends JavaPlugin {
     }
 
     private void initEnchantments() {
-        capitatorEnchantmentKey = new NamespacedKey(this, ENCHANTMENT_CAPITATOR_NAME);
-        capitatorEnchantment = new CapitatorEnchantment(ENCHANTMENT_CAPITATOR_NAME, capitatorEnchantmentKey);
+        final boolean activateCapitator = getConfig().getBoolean("capitator", true);
+
+        if (activateCapitator) {
+            capitatorEnchantmentKey = new NamespacedKey(this, ENCHANTMENT_CAPITATOR_NAME);
+            capitatorEnchantment = new CapitatorEnchantment(ENCHANTMENT_CAPITATOR_NAME, capitatorEnchantmentKey);
+        }
 
         try {
             final Field acceptingField = Enchantment.class.getDeclaredField("acceptingNew");
@@ -98,13 +102,16 @@ public final class InvTweaksPlugin extends JavaPlugin {
 
             acceptingField.set(null, true);
 
-            Enchantment.registerEnchantment(capitatorEnchantment);
+            if (activateCapitator)
+                Enchantment.registerEnchantment(capitatorEnchantment);
         } catch (NoSuchFieldException | IllegalAccessException e) {
             e.printStackTrace();
         }
     }
 
     private void disableEnchantments() {
+        final boolean activateCapitator = getConfig().getBoolean("capitator", true);
+
         try {
             final Field byKeyField = Enchantment.class.getDeclaredField("byKey");
             final Field byNameField = Enchantment.class.getDeclaredField("byName");
@@ -116,8 +123,11 @@ public final class InvTweaksPlugin extends JavaPlugin {
             final Object byName = byNameField.get(null);
 
             if (byKey instanceof final Map<?, ?> byKeyMap && byName instanceof final Map<?, ?> byNameMap) {
-                byKeyMap.remove(capitatorEnchantmentKey);
-                byNameMap.remove(ENCHANTMENT_CAPITATOR_NAME);
+
+                if (activateCapitator) {
+                    byKeyMap.remove(capitatorEnchantmentKey);
+                    byNameMap.remove(ENCHANTMENT_CAPITATOR_NAME);
+                }
             }
         } catch (NoSuchFieldException | IllegalAccessException e) {
             e.printStackTrace();
@@ -131,14 +141,18 @@ public final class InvTweaksPlugin extends JavaPlugin {
      * Initialize event listeners for this plugin
      */
     private void initEvents() {
+        final boolean activateCapitator = getConfig().getBoolean("capitator", true);
+        final boolean activateGhostClick = getConfig().getBoolean("ghostClick", true);
+
         final PluginManager pluginManager = getServer().getPluginManager();
 
-        pluginManager.registerEvents(new GhostClickListener(), this);
+        if (activateGhostClick)
+            pluginManager.registerEvents(new GhostClickListener(), this);
         pluginManager.registerEvents(new StackReplaceListener(this), this);
         pluginManager.registerEvents(new SortListener(), this);
         pluginManager.registerEvents(new MagnetismListener(magnetCommandExecutor), this);
         pluginManager.registerEvents(new TabCompletionListener(), this);
-        pluginManager.registerEvents(new TreeCapitatorListener(capitatorEnchantment), this);
+        pluginManager.registerEvents(new TreeCapitatorListener(activateCapitator ? capitatorEnchantment : null), this);
     }
 
     /**
@@ -153,16 +167,22 @@ public final class InvTweaksPlugin extends JavaPlugin {
      * Initialize commands registered by this plugin
      */
     private void initCommands() {
+        final boolean activateCapitator = getConfig().getBoolean("capitator", true);
+
         sortCommandExecutor = new SortCommandExecutor();
         magnetCommandExecutor = new MagnetCommandExecutor(this, "magnet", getPersistentData());
         searchCommandExecutor = new SearchCommandExecutor(this, "search");
-        capitatorCommand = new CapitatorCommand(capitatorEnchantment);
+
+        if (activateCapitator)
+            capitatorCommand = new CapitatorCommand(capitatorEnchantment);
 
         // TODO: Bind command by annotation
         Objects.requireNonNull(getCommand("sort")).setExecutor(sortCommandExecutor);
         Objects.requireNonNull(getCommand("magnet")).setExecutor(magnetCommandExecutor);
         Objects.requireNonNull(getCommand("search")).setExecutor(searchCommandExecutor);
-        Objects.requireNonNull(getCommand("capitator")).setExecutor(capitatorCommand);
+
+        if (activateCapitator)
+            Objects.requireNonNull(getCommand("capitator")).setExecutor(capitatorCommand);
     }
 
     /**

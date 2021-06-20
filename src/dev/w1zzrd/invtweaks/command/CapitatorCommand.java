@@ -16,6 +16,11 @@ public class CapitatorCommand implements CommandExecutor {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+        if (capitatorEnchantment == null) {
+            sender.spigot().sendMessage(CommandUtils.errorMessage("Tree capitation is disabled!"));
+            return true;
+        }
+
         if (sender instanceof final Player caller) {
             final ItemStack stack = caller.getInventory().getItemInMainHand();
 
