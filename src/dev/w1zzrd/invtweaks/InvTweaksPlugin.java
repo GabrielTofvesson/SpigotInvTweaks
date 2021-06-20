@@ -1,22 +1,25 @@
 package dev.w1zzrd.invtweaks;
 
+import dev.w1zzrd.invtweaks.command.CapitatorCommand;
 import dev.w1zzrd.invtweaks.command.MagnetCommandExecutor;
 import dev.w1zzrd.invtweaks.command.SearchCommandExecutor;
 import dev.w1zzrd.invtweaks.command.SortCommandExecutor;
-import dev.w1zzrd.invtweaks.listener.MagnetismListener;
-import dev.w1zzrd.invtweaks.listener.TabCompletionListener;
+import dev.w1zzrd.invtweaks.enchantment.CapitatorEnchantment;
+import dev.w1zzrd.invtweaks.listener.*;
 import dev.w1zzrd.invtweaks.serialization.MagnetConfig;
-import dev.w1zzrd.invtweaks.listener.SortListener;
-import dev.w1zzrd.invtweaks.listener.StackReplaceListener;
 import dev.w1zzrd.invtweaks.serialization.MagnetData;
 import dev.w1zzrd.invtweaks.serialization.SearchConfig;
 import dev.w1zzrd.invtweaks.serialization.UUIDList;
 import org.bukkit.Bukkit;
+import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.serialization.ConfigurationSerialization;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.lang.reflect.Field;
+import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Logger;
 
@@ -31,18 +34,24 @@ public final class InvTweaksPlugin extends JavaPlugin {
     public static final String LOG_PLUGIN_NAME = "[InventoryTweaks]";
     private static final String PERSISTENT_DATA_NAME = "data";
 
+    private static final String ENCHANTMENT_CAPITATOR_NAME = "Capitator";
+
     private final Logger logger = Bukkit.getLogger();
 
     // Command executor references in case I need them or something idk
     private SortCommandExecutor sortCommandExecutor;
     private MagnetCommandExecutor magnetCommandExecutor;
     private SearchCommandExecutor searchCommandExecutor;
+    private CapitatorCommand capitatorCommand;
     private DataStore data;
+    private NamespacedKey capitatorEnchantmentKey;
+    private Enchantment capitatorEnchantment;
 
     @Override
     public void onEnable() {
         logger.fine(LOG_PLUGIN_NAME + " Plugin enabled");
 
+        initEnchantments();
         enablePersistentData();
         initCommands();
         initEvents();
@@ -55,6 +64,7 @@ public final class InvTweaksPlugin extends JavaPlugin {
         disableEvents();
         disableCommands();
         disablePersistentData();
+        disableEnchantments();
     }
 
     @Override
@@ -78,18 +88,43 @@ public final class InvTweaksPlugin extends JavaPlugin {
         return data;
     }
 
-    /**
-     * Initialize commands registered by this plugin
-     */
-    private void initCommands() {
-        sortCommandExecutor = new SortCommandExecutor();
-        magnetCommandExecutor = new MagnetCommandExecutor(this, "magnet", getPersistentData());
-        searchCommandExecutor = new SearchCommandExecutor(this, "search");
+    private void initEnchantments() {
+        capitatorEnchantmentKey = new NamespacedKey(this, ENCHANTMENT_CAPITATOR_NAME);
+        capitatorEnchantment = new CapitatorEnchantment(ENCHANTMENT_CAPITATOR_NAME, capitatorEnchantmentKey);
 
-        // TODO: Bind command by annotation
-        Objects.requireNonNull(getCommand("sort")).setExecutor(sortCommandExecutor);
-        Objects.requireNonNull(getCommand("magnet")).setExecutor(magnetCommandExecutor);
-        Objects.requireNonNull(getCommand("search")).setExecutor(searchCommandExecutor);
+        try {
+            final Field acceptingField = Enchantment.class.getDeclaredField("acceptingNew");
+            acceptingField.setAccessible(true);
+
+            acceptingField.set(null, true);
+
+            Enchantment.registerEnchantment(capitatorEnchantment);
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void disableEnchantments() {
+        try {
+            final Field byKeyField = Enchantment.class.getDeclaredField("byKey");
+            final Field byNameField = Enchantment.class.getDeclaredField("byName");
+
+            byKeyField.setAccessible(true);
+            byNameField.setAccessible(true);
+
+            final Object byKey = byKeyField.get(null);
+            final Object byName = byNameField.get(null);
+
+            if (byKey instanceof final Map<?, ?> byKeyMap && byName instanceof final Map<?, ?> byNameMap) {
+                byKeyMap.remove(capitatorEnchantmentKey);
+                byNameMap.remove(ENCHANTMENT_CAPITATOR_NAME);
+            }
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            e.printStackTrace();
+        }
+
+        capitatorEnchantment = null;
+        capitatorEnchantmentKey = null;
     }
 
     /**
@@ -102,17 +137,7 @@ public final class InvTweaksPlugin extends JavaPlugin {
         pluginManager.registerEvents(new SortListener(), this);
         pluginManager.registerEvents(new MagnetismListener(magnetCommandExecutor), this);
         pluginManager.registerEvents(new TabCompletionListener(), this);
-    }
-
-    /**
-     * Do whatever is necessary to disable commands and their execution
-     */
-    private void disableCommands() {
-        magnetCommandExecutor.onDisable();
-
-        sortCommandExecutor = null;
-        magnetCommandExecutor = null;
-        searchCommandExecutor = null;
+        pluginManager.registerEvents(new TreeCapitatorListener(capitatorEnchantment), this);
     }
 
     /**
@@ -121,6 +146,34 @@ public final class InvTweaksPlugin extends JavaPlugin {
     private void disableEvents() {
         // Un-register all listeners
         HandlerList.unregisterAll(this);
+    }
+
+    /**
+     * Initialize commands registered by this plugin
+     */
+    private void initCommands() {
+        sortCommandExecutor = new SortCommandExecutor();
+        magnetCommandExecutor = new MagnetCommandExecutor(this, "magnet", getPersistentData());
+        searchCommandExecutor = new SearchCommandExecutor(this, "search");
+        capitatorCommand = new CapitatorCommand(capitatorEnchantment);
+
+        // TODO: Bind command by annotation
+        Objects.requireNonNull(getCommand("sort")).setExecutor(sortCommandExecutor);
+        Objects.requireNonNull(getCommand("magnet")).setExecutor(magnetCommandExecutor);
+        Objects.requireNonNull(getCommand("search")).setExecutor(searchCommandExecutor);
+        Objects.requireNonNull(getCommand("capitator")).setExecutor(capitatorCommand);
+    }
+
+    /**
+     * Do whatever is necessary to disable commands and their execution
+     */
+    private void disableCommands() {
+        magnetCommandExecutor.onDisable();
+
+        capitatorCommand = null;
+        searchCommandExecutor = null;
+        magnetCommandExecutor = null;
+        sortCommandExecutor = null;
     }
 
     /**
