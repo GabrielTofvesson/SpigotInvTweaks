@@ -133,6 +133,7 @@ public final class InvTweaksPlugin extends JavaPlugin {
     private void initEvents() {
         final PluginManager pluginManager = getServer().getPluginManager();
 
+        pluginManager.registerEvents(new GhostClickListener(), this);
         pluginManager.registerEvents(new StackReplaceListener(this), this);
         pluginManager.registerEvents(new SortListener(), this);
         pluginManager.registerEvents(new MagnetismListener(magnetCommandExecutor), this);
