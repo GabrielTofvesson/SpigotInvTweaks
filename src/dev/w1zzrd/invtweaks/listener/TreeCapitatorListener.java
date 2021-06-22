@@ -82,7 +82,7 @@ public class TreeCapitatorListener implements Listener {
     }
 
     private static int getMaxUses(final ItemStack stack, final Damageable tool) {
-        return ((stack.getEnchantmentLevel(Enchantment.DURABILITY) + 1) * (stack.getType().getMaxDurability()) - tool.getDamage());
+        return ((stack.getEnchantmentLevel(Enchantment.DURABILITY) + 1) * (stack.getType().getMaxDurability()) - tool.getDamage()) + 1;
     }
 
     private static boolean applyDamage(final ItemStack stack, final int brokenBlocks) {
