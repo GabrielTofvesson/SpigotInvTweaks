@@ -44,6 +44,11 @@ jobs:
           rm sources
           cd build
           jar cvf build.jar *
+
+      - name: Rename Artifacts
+        run: |
+          cd build
+          mv out.jar $(sha1sum build.jar | sed "s/\([^ ]*\) .*/SpigotInvTweaks-\\1.jar/g")
         
       - uses: "marvinpinto/action-automatic-releases@latest"
         with:
@@ -52,4 +57,4 @@ jobs:
           prerelease: true
           title: "CI Build"
           files: |
-            build/build.jar
+            build/SpigotInvTweaks-*.jar
