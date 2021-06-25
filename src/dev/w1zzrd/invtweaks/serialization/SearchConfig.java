@@ -1,5 +1,7 @@
 package dev.w1zzrd.invtweaks.serialization;
 
+import dev.w1zzrd.spigot.wizcompat.serialization.SimpleReflectiveConfigItem;
+
 import java.util.Map;
 
 public class SearchConfig extends SimpleReflectiveConfigItem {

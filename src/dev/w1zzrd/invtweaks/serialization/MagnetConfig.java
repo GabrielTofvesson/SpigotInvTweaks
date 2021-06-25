@@ -1,5 +1,6 @@
 package dev.w1zzrd.invtweaks.serialization;
 
+import dev.w1zzrd.spigot.wizcompat.serialization.SimpleReflectiveConfigItem;
 import org.bukkit.plugin.Plugin;
 
 import java.util.Map;

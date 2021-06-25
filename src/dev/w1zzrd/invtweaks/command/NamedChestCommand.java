@@ -15,8 +15,8 @@ import org.bukkit.plugin.Plugin;
 
 import java.util.Objects;
 
-import static dev.w1zzrd.invtweaks.command.CommandUtils.assertTrue;
-import static dev.w1zzrd.invtweaks.entity.EntityCreator.*;
+import static dev.w1zzrd.spigot.wizcompat.command.CommandUtils.*;
+import static dev.w1zzrd.spigot.wizcompat.packet.EntityCreator.*;
 
 public class NamedChestCommand implements CommandExecutor {
 
@@ -34,7 +34,7 @@ public class NamedChestCommand implements CommandExecutor {
         if (assertTrue(args.length == 0, "Expected a name for the chest", sender))
             return true;
 
-        if (assertTrue(args.length > 1, "Too many arguments for command", sender))
+        if (assertTrue(args.length > 2, "Too many arguments for command", sender))
             return true;
 
         assert sender instanceof Player;

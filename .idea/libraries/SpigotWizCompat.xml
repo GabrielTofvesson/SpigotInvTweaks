@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="SpigotWizCompat">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/lib/SpigotWizCompat.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

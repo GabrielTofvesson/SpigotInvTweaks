@@ -1,5 +1,7 @@
 package dev.w1zzrd.invtweaks.serialization;
 
+import dev.w1zzrd.spigot.wizcompat.serialization.SimpleReflectiveConfigItem;
+import dev.w1zzrd.spigot.wizcompat.serialization.UUIDList;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 

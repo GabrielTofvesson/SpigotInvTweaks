@@ -1,5 +1,6 @@
 package dev.w1zzrd.invtweaks.command;
 
+import dev.w1zzrd.spigot.wizcompat.command.CommandUtils;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;

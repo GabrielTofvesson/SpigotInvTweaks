@@ -19,8 +19,8 @@ import java.util.Optional;
 import java.util.logging.Logger;
 
 import static dev.w1zzrd.invtweaks.InvTweaksPlugin.LOG_PLUGIN_NAME;
+import static dev.w1zzrd.spigot.wizcompat.command.CommandUtils.assertTrue;
 import static org.bukkit.Material.*;
-import static dev.w1zzrd.invtweaks.command.CommandUtils.*;
 
 /**
  * Handler for executions of /sort command

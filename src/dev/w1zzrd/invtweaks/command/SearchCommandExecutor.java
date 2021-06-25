@@ -2,7 +2,11 @@ package dev.w1zzrd.invtweaks.command;
 
 import dev.w1zzrd.invtweaks.InvTweaksPlugin;
 import dev.w1zzrd.invtweaks.serialization.SearchConfig;
-import org.bukkit.*;
+import dev.w1zzrd.spigot.wizcompat.command.ConfigurableCommandExecutor;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.block.*;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -13,11 +17,14 @@ import org.bukkit.plugin.Plugin;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
 import java.util.logging.Logger;
 
-import static dev.w1zzrd.invtweaks.command.CommandUtils.assertTrue;
 import static dev.w1zzrd.invtweaks.listener.TabCompletionListener.getMaterialMatching;
+import static dev.w1zzrd.spigot.wizcompat.command.CommandUtils.assertTrue;
 
 /**
  * Handler for executions of /search command

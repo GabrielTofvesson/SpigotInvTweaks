@@ -1,13 +1,13 @@
 package dev.w1zzrd.invtweaks.command;
 
-import dev.w1zzrd.invtweaks.DataStore;
 import dev.w1zzrd.invtweaks.serialization.MagnetConfig;
 import dev.w1zzrd.invtweaks.serialization.MagnetData;
+import dev.w1zzrd.spigot.wizcompat.command.ConfigurableCommandExecutor;
+import dev.w1zzrd.spigot.wizcompat.serialization.PersistentData;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
@@ -28,7 +28,7 @@ public class MagnetCommandExecutor extends ConfigurableCommandExecutor<MagnetCon
 
     private static final Logger logger = Bukkit.getLogger();
 
-    private final DataStore data;
+    private final PersistentData data;
     private final MagnetData magnetData;
 
     private int divIndex = 0;
@@ -39,7 +39,7 @@ public class MagnetCommandExecutor extends ConfigurableCommandExecutor<MagnetCon
      * Initialize the magnet executor and manger
      * @param plugin Owner plugin for this executor
      */
-    public MagnetCommandExecutor(final Plugin plugin, final String path, final DataStore data) {
+    public MagnetCommandExecutor(final Plugin plugin, final String path, final PersistentData data) {
         super(plugin, path);
         this.data = data;
         this.magnetData = data.loadData("magnets", MagnetData::blank);

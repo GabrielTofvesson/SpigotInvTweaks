@@ -6,17 +6,16 @@ import dev.w1zzrd.invtweaks.listener.*;
 import dev.w1zzrd.invtweaks.serialization.MagnetConfig;
 import dev.w1zzrd.invtweaks.serialization.MagnetData;
 import dev.w1zzrd.invtweaks.serialization.SearchConfig;
-import dev.w1zzrd.invtweaks.serialization.UUIDList;
+import dev.w1zzrd.spigot.wizcompat.enchantment.EnchantmentRegistryEntry;
+import dev.w1zzrd.spigot.wizcompat.enchantment.ServerEnchantmentRegistry;
+import dev.w1zzrd.spigot.wizcompat.serialization.PersistentData;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.serialization.ConfigurationSerialization;
-import org.bukkit.enchantments.Enchantment;
 import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.lang.reflect.Field;
-import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Logger;
 
@@ -41,9 +40,8 @@ public final class InvTweaksPlugin extends JavaPlugin {
     private SearchCommandExecutor searchCommandExecutor;
     private NamedChestCommand namedChestCommandExecutor;
     private CapitatorCommand capitatorCommand;
-    private DataStore data;
-    private NamespacedKey capitatorEnchantmentKey;
-    private Enchantment capitatorEnchantment;
+    private PersistentData data;
+    private EnchantmentRegistryEntry<CapitatorEnchantment> capitatorEnchantment = null;
 
     @Override
     public void onEnable() {
@@ -80,59 +78,28 @@ public final class InvTweaksPlugin extends JavaPlugin {
 
     /**
      * Get a reference to the persistent data store object for this plugin
-     * @return An instance of {@link DataStore} for this plugin
+     * @return An instance of {@link PersistentData} for this plugin
      */
-    public DataStore getPersistentData() {
+    public PersistentData getPersistentData() {
         return data;
     }
 
     private void initEnchantments() {
-        final boolean activateCapitator = getConfig().getBoolean("capitator", true);
-
-        if (activateCapitator) {
-            capitatorEnchantmentKey = new NamespacedKey(this, ENCHANTMENT_CAPITATOR_NAME);
-            capitatorEnchantment = new CapitatorEnchantment(ENCHANTMENT_CAPITATOR_NAME, capitatorEnchantmentKey);
-        }
-
-        try {
-            final Field acceptingField = Enchantment.class.getDeclaredField("acceptingNew");
-            acceptingField.setAccessible(true);
-
-            acceptingField.set(null, true);
-
-            if (activateCapitator)
-                Enchantment.registerEnchantment(capitatorEnchantment);
-        } catch (NoSuchFieldException | IllegalAccessException e) {
-            e.printStackTrace();
-        }
+        if (getConfig().getBoolean("capitator", true))
+            capitatorEnchantment = ServerEnchantmentRegistry.registerEnchantment(
+                    this,
+                    new CapitatorEnchantment(
+                            ENCHANTMENT_CAPITATOR_NAME,
+                            new NamespacedKey(this, ENCHANTMENT_CAPITATOR_NAME)
+                    )
+            );
     }
 
     private void disableEnchantments() {
-        final boolean activateCapitator = getConfig().getBoolean("capitator", true);
-
-        try {
-            final Field byKeyField = Enchantment.class.getDeclaredField("byKey");
-            final Field byNameField = Enchantment.class.getDeclaredField("byName");
-
-            byKeyField.setAccessible(true);
-            byNameField.setAccessible(true);
-
-            final Object byKey = byKeyField.get(null);
-            final Object byName = byNameField.get(null);
-
-            if (byKey instanceof final Map<?, ?> byKeyMap && byName instanceof final Map<?, ?> byNameMap) {
-
-                if (activateCapitator) {
-                    byKeyMap.remove(capitatorEnchantmentKey);
-                    byNameMap.remove(ENCHANTMENT_CAPITATOR_NAME);
-                }
-            }
-        } catch (NoSuchFieldException | IllegalAccessException e) {
-            e.printStackTrace();
-        }
+        if (getConfig().getBoolean("capitator", true))
+            ServerEnchantmentRegistry.unRegisterEnchantment(this, capitatorEnchantment);
 
         capitatorEnchantment = null;
-        capitatorEnchantmentKey = null;
     }
 
     /**
@@ -150,7 +117,7 @@ public final class InvTweaksPlugin extends JavaPlugin {
         pluginManager.registerEvents(new SortListener(), this);
         pluginManager.registerEvents(new MagnetismListener(magnetCommandExecutor), this);
         pluginManager.registerEvents(new TabCompletionListener(), this);
-        pluginManager.registerEvents(new TreeCapitatorListener(activateCapitator ? capitatorEnchantment : null), this);
+        pluginManager.registerEvents(new TreeCapitatorListener(activateCapitator ? capitatorEnchantment.getEnchantment() : null), this);
     }
 
     /**
@@ -173,7 +140,7 @@ public final class InvTweaksPlugin extends JavaPlugin {
         namedChestCommandExecutor = new NamedChestCommand(this);
 
         if (activateCapitator)
-            capitatorCommand = new CapitatorCommand(capitatorEnchantment);
+            capitatorCommand = new CapitatorCommand(capitatorEnchantment.getEnchantment());
 
         // TODO: Bind command by annotation
         Objects.requireNonNull(getCommand("sort")).setExecutor(sortCommandExecutor);
@@ -206,7 +173,6 @@ public final class InvTweaksPlugin extends JavaPlugin {
     private void registerSerializers() {
         ConfigurationSerialization.registerClass(MagnetConfig.class);
         ConfigurationSerialization.registerClass(MagnetData.class);
-        ConfigurationSerialization.registerClass(UUIDList.class);
         ConfigurationSerialization.registerClass(SearchConfig.class);
     }
 
@@ -218,7 +184,6 @@ public final class InvTweaksPlugin extends JavaPlugin {
     private void unregisterSerializers() {
         ConfigurationSerialization.unregisterClass(MagnetConfig.class);
         ConfigurationSerialization.unregisterClass(MagnetData.class);
-        ConfigurationSerialization.unregisterClass(UUIDList.class);
         ConfigurationSerialization.unregisterClass(SearchConfig.class);
     }
 
@@ -233,7 +198,7 @@ public final class InvTweaksPlugin extends JavaPlugin {
         saveConfig();
 
         // Implicit load
-        data = new DataStore(PERSISTENT_DATA_NAME, this);
+        data = new PersistentData(PERSISTENT_DATA_NAME, this);
     }
 
     /**
