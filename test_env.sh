@@ -18,6 +18,8 @@ PLUGIN_PATH=""
 UPDATE_PAPER=true
 AUTORUN=""
 EULA=false
+DEPS=""
+CLEAR_PLUGINS=0
 
 print_help() {
   echo -e "Paper test server deployment script\nArguments:"
@@ -30,6 +32,8 @@ print_help() {
   echo "  -n              -   Same as --no-update"
   echo "  -s [type]       -   Autorun server after deployment. Type is \"debug\" to start with remote debugging, else \"run\""
   echo "  -e              -   Accepts the EULA for the deployed server (user must accept it in a provided prompt)"
+  echo "  --deps [PATH]   -   Path for plugin dependencies needed to load plugin"
+  echo "  -c              -   Delete existing plugins directory on autorun"
   echo "  -h              -   Show this help prompt"
   echo -e "Example:\n  $0 -v 1.16 -p out/plugin.jar -s debug -e"
 }
@@ -106,6 +110,15 @@ do
 
     "-e")
       EULA=true
+      ;;
+
+    "--deps")
+      TARGET="DEPS"
+      SKIP=true
+      ;;
+
+    "-c")
+      CLEAR_PLUGINS=1
       ;;
 
     *)
@@ -186,15 +199,30 @@ check_java_version || exit
 ensure_python3 || exit
 
 
-if ! [ -d "$ENV_DIR/plugins" ]
+if [ -d "$ENV_DIR/plugins" ] && [ $CLEAR_PLUGINS -eq 1 ]
 then
-  mkdir -p "$ENV_DIR/plugins" || (print_error "Could not create server directory at $ENV_DIR" && exit)
+  print_info "Found existing plugins directory. Clearing it..."
+  rm -r "$ENV_DIR/plugins"
 fi
+
+mkdir -p "$ENV_DIR/plugins" || (print_error "Could not create server directory at $ENV_DIR" && exit)
 
 if [ -n "$PLUGIN_PATH" ]
 then
   print_info "Copying plugin to server directory..."
   cp "$PLUGIN_PATH" "$ENV_DIR/plugins" || (print_error "Could not copy targeted plugin to test environment" && exit)
+fi
+
+if [ -n "$DEPS" ]
+then
+  if [ -d "$DEPS" ]
+  then
+    print_info "Copying dependencies..."
+    cp "$DEPS"/* "$ENV_DIR/plugins"
+  else
+    print_error "Dependencies directory does not exist!"
+    exit
+  fi
 fi
 
 cd "$ENV_DIR" || (print_error "Could not enter directory $ENV_DIR" && exit)
@@ -238,6 +266,11 @@ shopt -u nocaseglob
 
 if [ -n "$AUTORUN" ]
 then
-  print_info "Autorun was specified. Starting server..."
+  print_info "Autorun was specified. Attempting to kill active server processes..."
+
+  kill -9 $(fuser 25565/tcp | sed "s/.*\\s\\(.*\\)/\\1/g") > /dev/null 2>&1
+
+  print_info "Starting server..."
+
   "$SHELL" "$AUTORUN"
 fi
