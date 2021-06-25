@@ -31,21 +31,18 @@ public class NamedChestCommand implements CommandExecutor {
         if (assertTrue(sender instanceof Player && ((Player) sender).isOnline(), "Command can only be run by a player!", sender))
             return true;
 
-        if (assertTrue(args.length == 0, "Expected a name for the chest", sender))
+        if (assertTrue(args.length != 0, "Expected a name for the chest", sender))
             return true;
 
-        if (assertTrue(args.length > 2, "Too many arguments for command", sender))
+        if (assertTrue(args.length == 1, "Too many arguments for command", sender))
             return true;
 
-        assert sender instanceof Player;
         final Player player = (Player) sender;
 
         final Block block = player.getTargetBlockExact(10);
 
         if (assertTrue(block != null && (block.getType() == Material.CHEST || block.getType() == Material.TRAPPED_CHEST), "You must be targeting a chest", sender))
             return true;
-
-        assert block != null;
 
         final Location loc = getCenterChestLocation(block);
 
