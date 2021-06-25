@@ -1,9 +1,6 @@
 package dev.w1zzrd.invtweaks;
 
-import dev.w1zzrd.invtweaks.command.CapitatorCommand;
-import dev.w1zzrd.invtweaks.command.MagnetCommandExecutor;
-import dev.w1zzrd.invtweaks.command.SearchCommandExecutor;
-import dev.w1zzrd.invtweaks.command.SortCommandExecutor;
+import dev.w1zzrd.invtweaks.command.*;
 import dev.w1zzrd.invtweaks.enchantment.CapitatorEnchantment;
 import dev.w1zzrd.invtweaks.listener.*;
 import dev.w1zzrd.invtweaks.serialization.MagnetConfig;
@@ -42,6 +39,7 @@ public final class InvTweaksPlugin extends JavaPlugin {
     private SortCommandExecutor sortCommandExecutor;
     private MagnetCommandExecutor magnetCommandExecutor;
     private SearchCommandExecutor searchCommandExecutor;
+    private NamedChestCommand namedChestCommandExecutor;
     private CapitatorCommand capitatorCommand;
     private DataStore data;
     private NamespacedKey capitatorEnchantmentKey;
@@ -172,6 +170,7 @@ public final class InvTweaksPlugin extends JavaPlugin {
         sortCommandExecutor = new SortCommandExecutor();
         magnetCommandExecutor = new MagnetCommandExecutor(this, "magnet", getPersistentData());
         searchCommandExecutor = new SearchCommandExecutor(this, "search");
+        namedChestCommandExecutor = new NamedChestCommand(this);
 
         if (activateCapitator)
             capitatorCommand = new CapitatorCommand(capitatorEnchantment);
@@ -180,6 +179,7 @@ public final class InvTweaksPlugin extends JavaPlugin {
         Objects.requireNonNull(getCommand("sort")).setExecutor(sortCommandExecutor);
         Objects.requireNonNull(getCommand("magnet")).setExecutor(magnetCommandExecutor);
         Objects.requireNonNull(getCommand("search")).setExecutor(searchCommandExecutor);
+        Objects.requireNonNull(getCommand("chestname")).setExecutor(namedChestCommandExecutor);
 
         if (activateCapitator)
             Objects.requireNonNull(getCommand("capitator")).setExecutor(capitatorCommand);
@@ -192,6 +192,7 @@ public final class InvTweaksPlugin extends JavaPlugin {
         magnetCommandExecutor.onDisable();
 
         capitatorCommand = null;
+        namedChestCommandExecutor = null;
         searchCommandExecutor = null;
         magnetCommandExecutor = null;
         sortCommandExecutor = null;
