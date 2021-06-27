@@ -3,10 +3,7 @@ package dev.w1zzrd.invtweaks.command;
 import dev.w1zzrd.invtweaks.InvTweaksPlugin;
 import dev.w1zzrd.invtweaks.serialization.SearchConfig;
 import dev.w1zzrd.spigot.wizcompat.command.ConfigurableCommandExecutor;
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.block.*;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -17,10 +14,7 @@ import org.bukkit.plugin.Plugin;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.logging.Logger;
 
 import static dev.w1zzrd.invtweaks.listener.TabCompletionListener.getMaterialMatching;
@@ -54,17 +48,14 @@ public class SearchCommandExecutor extends ConfigurableCommandExecutor<SearchCon
                 assertTrue((targetMaterial = getMaterialMatching(args[0])) != null, String.format(ERR_UNKNOWN, args[0]), sender)
         ) return true;
 
-        assert targetMaterial != null;
-        assert sender instanceof Player;
         final Player player = (Player) sender;
 
         final SearchConfig config = getConfig();
 
-        final List<BlockState> matches = searchBlocks(
-                player.getLocation(),
-                player.getWorld(),
-                config.getSearchRadiusX(), config.getSearchRadiusY(), config.getSearchRadiusZ(),
-                Material.CHEST, Material.SHULKER_BOX
+        final List<BlockState> matches = searchChunks(
+                player.getLocation().getChunk(),
+                config.getSearchRadiusX(),
+                Material.CHEST, Material.TRAPPED_CHEST, Material.SHULKER_BOX
         );
 
         // Ensure we found inventory-holding blocks
@@ -152,7 +143,24 @@ public class SearchCommandExecutor extends ConfigurableCommandExecutor<SearchCon
         return true;
     }
 
-    private List<BlockState> searchBlocks(
+    private static List<BlockState> searchChunks(final Chunk middle, final int radius, final Material... targets) {
+        final int xMin = middle.getX() - radius;
+        final int xMax = middle.getX() + radius;
+        final int zMin = middle.getZ() - radius;
+        final int zMax = middle.getZ() + radius;
+
+        final World sourceWorld = middle.getWorld();
+
+        final List<Material> targetMaterials = Arrays.asList(targets);
+        final ArrayList<BlockState> collect = new ArrayList<>();
+        for (int x = xMin; x <= xMax; ++x)
+            for (int z = zMin; z <= zMax; ++z)
+                Arrays.stream(sourceWorld.getChunkAt(x, z).getTileEntities()).filter(it -> targetMaterials.contains(it.getType())).forEach(collect::add);
+
+        return collect;
+    }
+
+    private static List<BlockState> searchBlocks(
             final Location centre,
             final World world,
             final int rx,

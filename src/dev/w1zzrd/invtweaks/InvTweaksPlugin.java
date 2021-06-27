@@ -41,6 +41,7 @@ public final class InvTweaksPlugin extends JavaPlugin {
     private MagnetCommandExecutor magnetCommandExecutor;
     private SearchCommandExecutor searchCommandExecutor;
     private NamedChestCommand namedChestCommandExecutor;
+    private FindCommandExecutor findCommandExecutor;
     private CapitatorCommand capitatorCommand;
     private PersistentData data;
     private NamedChestManager chestManager;
@@ -143,6 +144,7 @@ public final class InvTweaksPlugin extends JavaPlugin {
         magnetCommandExecutor = new MagnetCommandExecutor(this, "magnet", getPersistentData());
         searchCommandExecutor = new SearchCommandExecutor(this, "search");
         namedChestCommandExecutor = new NamedChestCommand(chestManager);
+        findCommandExecutor = new FindCommandExecutor(this);
 
         if (activateCapitator)
             capitatorCommand = new CapitatorCommand(capitatorEnchantment.getEnchantment());
@@ -152,6 +154,7 @@ public final class InvTweaksPlugin extends JavaPlugin {
         Objects.requireNonNull(getCommand("magnet")).setExecutor(magnetCommandExecutor);
         Objects.requireNonNull(getCommand("search")).setExecutor(searchCommandExecutor);
         Objects.requireNonNull(getCommand("chestname")).setExecutor(namedChestCommandExecutor);
+        Objects.requireNonNull(getCommand("find")).setExecutor(findCommandExecutor);
 
         if (activateCapitator)
             Objects.requireNonNull(getCommand("capitator")).setExecutor(capitatorCommand);
@@ -164,6 +167,7 @@ public final class InvTweaksPlugin extends JavaPlugin {
         magnetCommandExecutor.onDisable();
 
         capitatorCommand = null;
+        findCommandExecutor = null;
         namedChestCommandExecutor = null;
         searchCommandExecutor = null;
         magnetCommandExecutor = null;
