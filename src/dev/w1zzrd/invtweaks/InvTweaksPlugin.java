@@ -2,7 +2,9 @@ package dev.w1zzrd.invtweaks;
 
 import dev.w1zzrd.invtweaks.command.*;
 import dev.w1zzrd.invtweaks.enchantment.CapitatorEnchantment;
+import dev.w1zzrd.invtweaks.feature.NamedChestManager;
 import dev.w1zzrd.invtweaks.listener.*;
+import dev.w1zzrd.invtweaks.serialization.ChestNameConfig;
 import dev.w1zzrd.invtweaks.serialization.MagnetConfig;
 import dev.w1zzrd.invtweaks.serialization.MagnetData;
 import dev.w1zzrd.invtweaks.serialization.SearchConfig;
@@ -41,6 +43,7 @@ public final class InvTweaksPlugin extends JavaPlugin {
     private NamedChestCommand namedChestCommandExecutor;
     private CapitatorCommand capitatorCommand;
     private PersistentData data;
+    private NamedChestManager chestManager;
     private EnchantmentRegistryEntry<CapitatorEnchantment> capitatorEnchantment = null;
 
     @Override
@@ -118,6 +121,8 @@ public final class InvTweaksPlugin extends JavaPlugin {
         pluginManager.registerEvents(new MagnetismListener(magnetCommandExecutor), this);
         pluginManager.registerEvents(new TabCompletionListener(), this);
         pluginManager.registerEvents(new TreeCapitatorListener(activateCapitator ? capitatorEnchantment.getEnchantment() : null), this);
+        pluginManager.registerEvents(new PlayerMoveRenderListener(chestManager), this);
+        pluginManager.registerEvents(new ChestBreakListener(chestManager), this);
     }
 
     /**
@@ -137,7 +142,7 @@ public final class InvTweaksPlugin extends JavaPlugin {
         sortCommandExecutor = new SortCommandExecutor();
         magnetCommandExecutor = new MagnetCommandExecutor(this, "magnet", getPersistentData());
         searchCommandExecutor = new SearchCommandExecutor(this, "search");
-        namedChestCommandExecutor = new NamedChestCommand(this);
+        namedChestCommandExecutor = new NamedChestCommand(chestManager);
 
         if (activateCapitator)
             capitatorCommand = new CapitatorCommand(capitatorEnchantment.getEnchantment());
@@ -174,6 +179,10 @@ public final class InvTweaksPlugin extends JavaPlugin {
         ConfigurationSerialization.registerClass(MagnetConfig.class);
         ConfigurationSerialization.registerClass(MagnetData.class);
         ConfigurationSerialization.registerClass(SearchConfig.class);
+        ConfigurationSerialization.registerClass(ChestNameConfig.class);
+        ConfigurationSerialization.registerClass(ChestNameConfig.ChestNameWorldEntry.class);
+        ConfigurationSerialization.registerClass(ChestNameConfig.ChestNameWorldEntry.ChestNameChunkEntry.class);
+        ConfigurationSerialization.registerClass(ChestNameConfig.ChestNameWorldEntry.ChestNameChunkEntry.ChestNameConfigEntry.class);
     }
 
     /**
@@ -182,6 +191,10 @@ public final class InvTweaksPlugin extends JavaPlugin {
      * @see #registerSerializers()
      */
     private void unregisterSerializers() {
+        ConfigurationSerialization.registerClass(ChestNameConfig.ChestNameWorldEntry.ChestNameChunkEntry.ChestNameConfigEntry.class);
+        ConfigurationSerialization.registerClass(ChestNameConfig.ChestNameWorldEntry.ChestNameChunkEntry.class);
+        ConfigurationSerialization.registerClass(ChestNameConfig.ChestNameWorldEntry.class);
+        ConfigurationSerialization.registerClass(ChestNameConfig.class);
         ConfigurationSerialization.unregisterClass(MagnetConfig.class);
         ConfigurationSerialization.unregisterClass(MagnetData.class);
         ConfigurationSerialization.unregisterClass(SearchConfig.class);
@@ -199,12 +212,16 @@ public final class InvTweaksPlugin extends JavaPlugin {
 
         // Implicit load
         data = new PersistentData(PERSISTENT_DATA_NAME, this);
+
+        chestManager = new NamedChestManager(data);
     }
 
     /**
      * De-activate and finalize persistent data storage sources and handlers
      */
     private void disablePersistentData() {
+        chestManager = null;
+
         data.saveData();
         data = null;
 

@@ -1,29 +1,23 @@
 package dev.w1zzrd.invtweaks.command;
 
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
+import dev.w1zzrd.invtweaks.feature.NamedChestManager;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.Chest;
-import org.bukkit.block.DoubleChest;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.InventoryHolder;
-import org.bukkit.plugin.Plugin;
 
-import java.util.Objects;
+import static dev.w1zzrd.invtweaks.listener.PlayerMoveRenderListener.RENDER_RADIUS;
+import static dev.w1zzrd.spigot.wizcompat.command.CommandUtils.assertTrue;
 
-import static dev.w1zzrd.spigot.wizcompat.command.CommandUtils.*;
-import static dev.w1zzrd.spigot.wizcompat.packet.EntityCreator.*;
+public final class NamedChestCommand implements CommandExecutor {
 
-public class NamedChestCommand implements CommandExecutor {
+    private final NamedChestManager manager;
 
-    private final Plugin plugin;
-
-    public NamedChestCommand(final Plugin plugin) {
-        this.plugin = plugin;
+    public NamedChestCommand(final NamedChestManager manager) {
+        this.manager = manager;
     }
 
     @Override
@@ -31,10 +25,7 @@ public class NamedChestCommand implements CommandExecutor {
         if (assertTrue(sender instanceof Player && ((Player) sender).isOnline(), "Command can only be run by a player!", sender))
             return true;
 
-        if (assertTrue(args.length != 0, "Expected a name for the chest", sender))
-            return true;
-
-        if (assertTrue(args.length == 1, "Too many arguments for command", sender))
+        if (assertTrue(args.length <= 1, "Too many arguments for command", sender))
             return true;
 
         final Player player = (Player) sender;
@@ -44,43 +35,18 @@ public class NamedChestCommand implements CommandExecutor {
         if (assertTrue(block != null && (block.getType() == Material.CHEST || block.getType() == Material.TRAPPED_CHEST), "You must be targeting a chest", sender))
             return true;
 
-        final Location loc = getCenterChestLocation(block);
+        final Chest chest = (Chest) block.getState();
 
-        final Object entity = createFakeSlime(player);
-        setSlimeSize(entity, 1);
-
-        setEntityCollision(entity, false);
-        setEntityCustomName(entity, args[0]);
-        setEntityInvulnerable(entity, true);
-        setEntityLocation(entity, loc.getX(), loc.getY(), loc.getZ(), 0f, 0f);
-        setEntityCustomNameVisible(entity, true);
-
-        sendEntitySpawnPacket(player, entity);
-        sendEntityMetadataPacket(player, entity);
-
-        final int entityID = getEntityID(entity);
-
-        Bukkit.getScheduler().runTaskLater(plugin, () -> {
-            sendEntityDespawnPacket(player, entityID);
-        }, 60);
-
-        return true;
-    }
-
-    private static Location getCenterChestLocation(final Block chestBlock) {
-        final InventoryHolder holder = Objects.requireNonNull(((Chest) chestBlock.getState()).getBlockInventory().getHolder()).getInventory().getHolder();
-
-        if (holder instanceof final DoubleChest dChest) {
-            final Location left = getBlockCenter(Objects.requireNonNull((Chest)dChest.getLeftSide()).getBlock());
-            final Location right = getBlockCenter(Objects.requireNonNull((Chest)dChest.getRightSide()).getBlock());
-
-            return new Location(left.getWorld(), (left.getX() + right.getX()) / 2.0, left.getY() + 0.2, (left.getZ() + right.getZ()) / 2.0);
+        if (args.length == 0) {
+            manager.removeTag(chest);
         } else {
-            return getBlockCenter(chestBlock).add(0.0, 0.2, 0.0);
-        }
-    }
+            if (manager.hasNamedChest(chest))
+                manager.removeTag(chest);
 
-    private static Location getBlockCenter(final Block block) {
-        return block.getLocation().add(0.5, 0, 0.5);
+            manager.addTag(chest, args[0]);
+        }
+
+        manager.renderTags(chest.getChunk(), RENDER_RADIUS);
+        return true;
     }
 }
