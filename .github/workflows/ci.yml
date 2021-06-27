@@ -38,7 +38,7 @@ jobs:
           curl $jar_url > spigot-shaded.jar
           find -name "*.java" > sources
           curl -s https://github.com/GabrielTofvesson/SpigotWizCompat/releases | grep "latest/SpigotWizCompat-.*jar" | cut -d : -f 2,3 | sed "s/[^\"]*\"\\([^\"]*\\)\".*/https:\\/\\/github.com\\/\\1/g" | wget -O SpigotWizCompat.jar -qi -
-          javac -cp spigot-shaded.jar;SpigotWizCompat.jar @sources -d build
+          javac -cp . @sources -d build
           cp res/* build
           rm sources
           cd build
