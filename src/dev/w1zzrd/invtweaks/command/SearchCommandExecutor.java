@@ -15,6 +15,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
+import java.util.Comparator;
 import java.util.logging.Logger;
 
 import static dev.w1zzrd.invtweaks.listener.TabCompletionListener.getMaterialMatching;
@@ -49,11 +50,12 @@ public class SearchCommandExecutor extends ConfigurableCommandExecutor<SearchCon
         ) return true;
 
         final Player player = (Player) sender;
+        final Location playerLocation = player.getLocation();
 
         final SearchConfig config = getConfig();
 
         final List<BlockState> matches = searchChunks(
-                player.getLocation().getChunk(),
+                playerLocation.getChunk(),
                 config.getSearchRadiusX(),
                 Material.CHEST, Material.TRAPPED_CHEST, Material.SHULKER_BOX
         );
@@ -61,6 +63,8 @@ public class SearchCommandExecutor extends ConfigurableCommandExecutor<SearchCon
         // Ensure we found inventory-holding blocks
         if (assertTrue(matches.size() != 0, ERR_NO_INVENTORIES, sender))
             return true;
+
+        matches.sort(Comparator.comparingDouble(state -> state.getLocation().distanceSquared(playerLocation)));
 
         final InventoryHolder result;
 
