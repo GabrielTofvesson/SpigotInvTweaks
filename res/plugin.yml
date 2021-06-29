@@ -21,7 +21,7 @@ commands:
   find:
     description: Show all chests that contain a given item
     usage: /<command> {item type}
-    permissino: invtweaks.find
+    permission: invtweaks.find
   capitator:
     description: Toggle tree capitation for an axe in your main hand
     usage: /<command>
