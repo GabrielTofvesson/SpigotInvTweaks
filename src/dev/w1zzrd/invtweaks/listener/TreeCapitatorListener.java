@@ -46,9 +46,11 @@ public class TreeCapitatorListener implements Listener {
     );
 
     private final Enchantment capitatorEnchantment;
+    private final double hungerPerBlock;
 
-    public TreeCapitatorListener(final Enchantment capitatorEnchantment) {
+    public TreeCapitatorListener(final Enchantment capitatorEnchantment, final double hungerPerBlock) {
         this.capitatorEnchantment = capitatorEnchantment;
+        this.hungerPerBlock = hungerPerBlock;
     }
 
     @EventHandler
@@ -74,6 +76,11 @@ public class TreeCapitatorListener implements Listener {
                 if (event.getPlayer().getGameMode() != GameMode.CREATIVE && !applyDamage(handTool, logBreakCount)) {
                     event.getPlayer().getInventory().setItemInMainHand(new ItemStack(AIR));
                     event.getPlayer().playSound(event.getPlayer().getLocation(), Sound.ENTITY_ITEM_BREAK, 1.0f, 1.0f);
+                }
+
+                if (event.getPlayer().getGameMode() == GameMode.ADVENTURE || event.getPlayer().getGameMode() == GameMode.SURVIVAL) {
+                    final int hunger = (int) Math.round(hungerPerBlock * logBreakCount);
+                    event.getPlayer().setFoodLevel(Math.max(0, event.getPlayer().getFoodLevel() - hunger));
                 }
 
                 event.setCancelled(true);

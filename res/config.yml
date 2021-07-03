@@ -10,3 +10,4 @@ search:
   searchRadiusZ: 8
 ghostClick: true
 capitator: true
+capitatorHungerPerBlock: 0.03125
