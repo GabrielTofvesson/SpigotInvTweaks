@@ -11,3 +11,4 @@ search:
 ghostClick: true
 capitator: true
 capitatorHungerPerBlock: 0.03125
+capitatorMinHunger: 3

@@ -123,7 +123,8 @@ public final class InvTweaksPlugin extends JavaPlugin {
         pluginManager.registerEvents(new TabCompletionListener(), this);
         pluginManager.registerEvents(new TreeCapitatorListener(
                 activateCapitator ? capitatorEnchantment.getEnchantment() : null,
-                getConfig().getDouble("capitatorHungerPerBlock")
+                getConfig().getDouble("capitatorHungerPerBlock"),
+                getConfig().getInt("capitatorMinHunger")
         ), this);
         pluginManager.registerEvents(new PlayerMoveRenderListener(chestManager), this);
         pluginManager.registerEvents(new ChestBreakListener(chestManager), this);

@@ -15,6 +15,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.*;
 
+import static dev.w1zzrd.spigot.wizcompat.command.CommandUtils.errorMessage;
 import static org.bukkit.Material.*;
 
 public class TreeCapitatorListener implements Listener {
@@ -47,10 +48,12 @@ public class TreeCapitatorListener implements Listener {
 
     private final Enchantment capitatorEnchantment;
     private final double hungerPerBlock;
+    private final int minHunger;
 
-    public TreeCapitatorListener(final Enchantment capitatorEnchantment, final double hungerPerBlock) {
+    public TreeCapitatorListener(final Enchantment capitatorEnchantment, final double hungerPerBlock, final int minHunger) {
         this.capitatorEnchantment = capitatorEnchantment;
         this.hungerPerBlock = hungerPerBlock;
+        this.minHunger = minHunger;
     }
 
     @EventHandler
@@ -58,6 +61,12 @@ public class TreeCapitatorListener implements Listener {
         final ItemStack handTool = event.getPlayer().getInventory().getItemInMainHand();
         if (event.isCancelled() || !handTool.containsEnchantment(capitatorEnchantment))
             return;
+
+        // Check if capitator functionality is prevented by hunger
+        if (event.getPlayer().getFoodLevel() < minHunger) {
+            event.getPlayer().spigot().sendMessage(errorMessage("You are too tired to fell the tree"));
+            return;
+        }
 
         if (handTool.getItemMeta() instanceof final Damageable tool) {
             if (!leaves.contains(event.getBlock().getType()) && targetMaterials.contains(event.getBlock().getType())) {
