@@ -28,13 +28,38 @@ public class TreeCapitatorListener implements Listener {
             JUNGLE_LOG,
             DARK_OAK_LOG,
             SPRUCE_LOG,
+            CRIMSON_STEM,
+            WARPED_STEM,
+            ACACIA_WOOD,
+            OAK_WOOD,
+            BIRCH_WOOD,
+            JUNGLE_WOOD,
+            DARK_OAK_WOOD,
+            SPRUCE_WOOD,
+            CRIMSON_STEM,
+            WARPED_STEM,
+            CRIMSON_HYPHAE,
+            WARPED_HYPHAE,
+            STRIPPED_ACACIA_LOG,
+            STRIPPED_OAK_LOG,
+            STRIPPED_BIRCH_LOG,
+            STRIPPED_JUNGLE_LOG,
+            STRIPPED_DARK_OAK_LOG,
+            STRIPPED_SPRUCE_LOG,
+            STRIPPED_CRIMSON_STEM,
+            STRIPPED_WARPED_STEM,
+            STRIPPED_CRIMSON_HYPHAE,
+            STRIPPED_WARPED_HYPHAE,
 
             ACACIA_LEAVES,
             OAK_LEAVES,
             BIRCH_LEAVES,
             JUNGLE_LEAVES,
             DARK_OAK_LEAVES,
-            SPRUCE_LEAVES
+            SPRUCE_LEAVES,
+            NETHER_WART_BLOCK,
+            WARPED_WART_BLOCK,
+            SHROOMLIGHT
     );
 
     private static final List<Material> leaves = Arrays.asList(
@@ -43,7 +68,10 @@ public class TreeCapitatorListener implements Listener {
             BIRCH_LEAVES,
             JUNGLE_LEAVES,
             DARK_OAK_LEAVES,
-            SPRUCE_LEAVES
+            SPRUCE_LEAVES,
+            NETHER_WART_BLOCK,
+            WARPED_WART_BLOCK,
+            SHROOMLIGHT
     );
 
     private final Enchantment capitatorEnchantment;
