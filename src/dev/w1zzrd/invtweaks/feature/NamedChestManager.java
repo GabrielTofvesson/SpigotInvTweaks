@@ -1,6 +1,7 @@
 package dev.w1zzrd.invtweaks.feature;
 
 import dev.w1zzrd.invtweaks.serialization.ChestNameConfig;
+import dev.w1zzrd.spigot.wizcompat.packet.EntityCreator;
 import dev.w1zzrd.spigot.wizcompat.serialization.PersistentData;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
@@ -123,12 +124,13 @@ public final class NamedChestManager {
                     if (chunk == null)
                         return;
 
-                    chunk.streamEntries().forEach(entry -> {
-                        final Object entity = entry.getEntity(() -> null);
-
-                        if (entity != null)
-                            sendEntityDespawnPacket(target, getEntityID(entity));
-                    });
+                    sendEntityDespawnPackets(
+                            target,
+                            chunk.streamEntries()
+                                    .map(entry -> entry.getEntity(() -> null))
+                                    .filter(Objects::nonNull)
+                                    .mapToInt(EntityCreator::getEntityID).toArray()
+                    );
                 });
     }
 
@@ -268,7 +270,7 @@ public final class NamedChestManager {
                     .filter(chunk -> {
                                 final ChestNameConfig.ChestNameWorldEntry.ChestNameChunkEntry chestChunk = config.getChunkEntry(worldID, chunk.getRender().x(), chunk.getRender().z());
 
-                                return chunk.getRender().x() < xMax ||
+                                return chunk.getRender().x() > xMax ||
                                         chunk.getRender().x() < xMin ||
                                         chunk.getRender().z() > zMax ||
                                         chunk.getRender().z() < zMin ||
