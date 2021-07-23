@@ -43,6 +43,8 @@ public final class InvTweaksPlugin extends JavaPlugin {
     private NamedChestCommand namedChestCommandExecutor;
     private FindCommandExecutor findCommandExecutor;
     private CapitatorCommand capitatorCommand;
+    private GrowUpCommand growUpCommand;
+    private ReWoolCommand reWoolCommand;
     private PersistentData data;
     private NamedChestManager chestManager;
     private EnchantmentRegistryEntry<CapitatorEnchantment> capitatorEnchantment = null;
@@ -149,6 +151,8 @@ public final class InvTweaksPlugin extends JavaPlugin {
         searchCommandExecutor = new SearchCommandExecutor(this, "search");
         namedChestCommandExecutor = new NamedChestCommand(chestManager);
         findCommandExecutor = new FindCommandExecutor(this);
+        growUpCommand = new GrowUpCommand();
+        reWoolCommand = new ReWoolCommand();
 
         if (activateCapitator)
             capitatorCommand = new CapitatorCommand(capitatorEnchantment.getEnchantment());
@@ -159,6 +163,8 @@ public final class InvTweaksPlugin extends JavaPlugin {
         Objects.requireNonNull(getCommand("search")).setExecutor(searchCommandExecutor);
         Objects.requireNonNull(getCommand("chestname")).setExecutor(namedChestCommandExecutor);
         Objects.requireNonNull(getCommand("find")).setExecutor(findCommandExecutor);
+        Objects.requireNonNull(getCommand("growup")).setExecutor(growUpCommand);
+        Objects.requireNonNull(getCommand("rewool")).setExecutor(reWoolCommand);
 
         if (activateCapitator)
             Objects.requireNonNull(getCommand("capitator")).setExecutor(capitatorCommand);
