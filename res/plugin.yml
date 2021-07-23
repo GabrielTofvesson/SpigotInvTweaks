@@ -30,3 +30,11 @@ commands:
     description: Add a floating nametag to a chest
     usage: /<command> {name}
     permission: invtweaks.spawnfake
+  growup:
+    description: Age baby animals
+    usage: /<command> [radius]
+    permission: invtweaks.growup
+  rewool:
+    description: Put the wool back on sheep
+    usage: /<command> [radius]
+    permission: invtweaks.rewool
