@@ -130,6 +130,7 @@ public final class InvTweaksPlugin extends JavaPlugin {
         ), this);
         pluginManager.registerEvents(new PlayerMoveRenderListener(chestManager), this);
         pluginManager.registerEvents(new ChestBreakListener(chestManager), this);
+        pluginManager.registerEvents(new SignEditListener(), this);
     }
 
     /**
